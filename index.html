@@ -1,0 +1,69 @@
+<!doctype html>
+<!-- `data-theme` seeds the default preset before the app mounts (the engine
+     then keeps it in sync); the framework's token blocks key off it. -->
+<html lang="en" data-theme="githubDark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+    />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
+    <title>Mask — mask personal data before it reaches an LLM</title>
+    <meta
+      name="description"
+      content="Mask is a local-first PWA that finds names, street addresses, cities, postal codes, phone numbers and Swedish personal identity numbers in a text or PDF, replaces them with placeholders you confirm, and restores them in the LLM's answer. Nothing leaves your browser."
+    />
+    <link rel="canonical" href="https://mask.niclaslindstedt.se/" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta
+      property="og:title"
+      content="Mask — mask personal data before it reaches an LLM"
+    />
+    <meta
+      property="og:description"
+      content="Find and replace names, addresses, phone numbers and personal identity numbers in Swedish documents with placeholders, send the masked text to an LLM, and restore the answer — all in your browser."
+    />
+    <meta property="og:url" content="https://mask.niclaslindstedt.se/" />
+    <meta
+      property="og:image"
+      content="https://mask.niclaslindstedt.se/og.png"
+    />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta
+      name="twitter:title"
+      content="Mask — mask personal data before it reaches an LLM"
+    />
+    <meta
+      name="twitter:description"
+      content="A local-first PWA that masks personal data in Swedish documents before they go to an LLM, and restores it in the answer."
+    />
+    <meta
+      name="twitter:image"
+      content="https://mask.niclaslindstedt.se/og.png"
+    />
+
+    <!-- JSON-LD -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "Mask",
+        "applicationCategory": "UtilitiesApplication",
+        "operatingSystem": "Any",
+        "description": "A local-first PWA that masks names, addresses, phone numbers and Swedish personal identity numbers in documents before they go to an LLM, and restores them in the answer.",
+        "url": "https://mask.niclaslindstedt.se/",
+        "image": "https://mask.niclaslindstedt.se/og.png",
+        "offers": { "@type": "Offer", "price": "0" }
+      }
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

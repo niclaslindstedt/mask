@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- The Mask mark: two text lines with a solid redaction bar between them,
+       in the app's amber on its dark surface. scripts/generate-icons.mjs
+       rasterises this same geometry for the PWA icons and the OG image. -->
+  <defs>
+    <linearGradient id="g" gradientUnits="userSpaceOnUse" x1="0" y1="15" x2="0" y2="49">
+      <stop offset="0" stop-color="#fcd34d"/>
+      <stop offset="1" stop-color="#f59e0b"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="13" fill="#0b0d10"/>
+  <g stroke="url(#g)" stroke-width="6" stroke-linecap="round" fill="none">
+    <path d="M12 18H52"/>
+    <path d="M12 46H38"/>
+    <path d="M45 32H52"/>
+  </g>
+  <rect x="12" y="25" width="26" height="14" rx="4" fill="url(#g)"/>
+</svg>

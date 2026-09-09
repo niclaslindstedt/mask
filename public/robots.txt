@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /preview/
+Disallow: /branch/
+
+Sitemap: https://mask.niclaslindstedt.se/sitemap.xml
