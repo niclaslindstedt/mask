@@ -1,0 +1,35 @@
+name: seo
+
+# OSS_SPEC §11.3.10 — structural SEO assertions over the built site: the
+# head signals (title, description, canonical, Open Graph, Twitter, JSON-LD),
+# the crawler files (robots, sitemap, llms.txt), and the PWA build output.
+# Errors block the PR.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  check-seo:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          registry-url: "https://npm.pkg.github.com"
+          scope: "@niclaslindstedt"
+      - run: npm ci
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - run: npm run build
+        env:
+          VITE_BASE: /
+      - run: npm run check:seo

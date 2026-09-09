@@ -1,0 +1,36 @@
+name: lighthouse
+
+# OSS_SPEC §11.3.10 / §11.4.7 — Lighthouse over the built site, with the
+# thresholds (including the PWA category) in .github/lighthouse/lighthouserc.json.
+# Catches the Core Web Vitals and installability regressions the static
+# check-seo workflow cannot see.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  lighthouse:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          registry-url: "https://npm.pkg.github.com"
+          scope: "@niclaslindstedt"
+      - run: npm ci
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - run: npm run build
+        env:
+          VITE_BASE: /
+      - run: npm install --global @lhci/cli@0.15.x
+      - run: lhci autorun --config=./.github/lighthouse/lighthouserc.json

@@ -1,0 +1,88 @@
+name: Release
+
+# The second half of the release pipeline (OSS_SPEC §10.3): given a `v*` tag —
+# pushed by version-bump.yml, which also calls this workflow directly — cut
+# the GitHub Release from the changelog section for that version and chain
+# into pages.yml so the tag is served at `/` immediately. Idempotent: a
+# release that already exists is left alone, so the direct call and a
+# tag-push trigger (when a RELEASE_TOKEN makes the push fire workflows)
+# never race into a duplicate.
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_call:
+    inputs:
+      tag:
+        description: "The vX.Y.Z tag to release."
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+  # npm ci resolves @niclaslindstedt/oss-framework from GitHub Packages.
+  packages: read
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.tag.outputs.tag }}
+    steps:
+      - name: Resolve tag
+        id: tag
+        run: |
+          TAG="${{ inputs.tag }}"
+          if [ -z "$TAG" ]; then TAG="${GITHUB_REF#refs/tags/}"; fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "version=${TAG#v}" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ steps.tag.outputs.tag }}
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          registry-url: "https://npm.pkg.github.com"
+          scope: "@niclaslindstedt"
+      - run: npm ci
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build release artifact
+        run: npm run build
+        env:
+          VITE_BASE: /
+          VITE_PWA_IGNORE_PATHS: /preview/,/branch/
+
+      - name: Extract release-notes body
+        run: node scripts/release/extract-section.mjs "${{ steps.tag.outputs.version }}" > .release-notes.md
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.tag.outputs.tag }}
+        run: |
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release $TAG already exists — nothing to do."
+            exit 0
+          fi
+          gh release create "$TAG" --title "$TAG" --notes-file .release-notes.md
+
+  deploy:
+    # Serve the new tag at `/` right away rather than on the next push.
+    needs: release
+    uses: ./.github/workflows/pages.yml
+    with:
+      release_ref: ${{ needs.release.outputs.tag }}
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
+      packages: read
+    secrets: inherit

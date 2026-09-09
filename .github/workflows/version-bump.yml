@@ -1,0 +1,128 @@
+name: version-bump
+
+# Manual-only (OSS_SPEC §10.3). The maintainer dispatches this and the
+# workflow derives the semver bump from the changeset fragments in
+# .changes/unreleased/ (their front-matter carries the Added/Changed/Fixed/…
+# type and an optional `breaking: true` — see scripts/release/compute-bump.mjs),
+# collates them into a new CHANGELOG section, bumps package.json, commits
+# `chore(release): vX.Y.Z` to main, pushes the tag, and then chains straight
+# into release.yml so the GitHub Release and the Pages deploy happen without
+# waiting on the tag-push trigger. (A tag pushed with the default
+# GITHUB_TOKEN does not fire other workflows; the explicit chain sidesteps
+# that. Set a RELEASE_TOKEN secret to have the tag push fire release.yml on
+# its own as well — release.yml is idempotent either way.)
+#
+# `bump` defaults to `auto`. Set patch/minor/major only to override the
+# derivation.
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: "Semver bump. 'auto' derives it from the .changes/unreleased/ fragments (breaking → major, Added/Changed/Removed/Deprecated → minor, Fixed/Security → patch)."
+        required: true
+        type: choice
+        default: auto
+        options:
+          - auto
+          - patch
+          - minor
+          - major
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+  # npm ci resolves @niclaslindstedt/oss-framework from GitHub Packages.
+  packages: read
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    outputs:
+      version: ${{ steps.bump.outputs.version }}
+      tag: ${{ steps.bump.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.RELEASE_TOKEN || secrets.GITHUB_TOKEN }}
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          registry-url: "https://npm.pkg.github.com"
+          scope: "@niclaslindstedt"
+      - run: npm ci
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Verify clean working tree
+        run: |
+          if ! git diff --quiet || ! git diff --quiet --cached; then
+            echo "::error::working tree is not clean — refusing to release"
+            git status
+            exit 1
+          fi
+
+      - name: Resolve bump
+        id: resolve
+        run: |
+          if [ "${{ inputs.bump }}" = "auto" ] || [ -z "${{ inputs.bump }}" ]; then
+            BUMP=$(node scripts/release/compute-bump.mjs)
+            echo "Auto-derived bump from fragments: $BUMP"
+          else
+            BUMP="${{ inputs.bump }}"
+            echo "Using requested bump override: $BUMP"
+          fi
+          echo "bump=$BUMP" >> "$GITHUB_OUTPUT"
+
+      - name: Bump version
+        id: bump
+        run: |
+          # Compute the next version from the highest released tag so the
+          # version stays monotonic with what was actually released.
+          LATEST_TAG=$(git tag -l 'v*' --sort=-v:refname | head -n1)
+          if [ -n "$LATEST_TAG" ]; then
+            npm version "${LATEST_TAG#v}" --no-git-tag-version --allow-same-version >/dev/null
+          fi
+          NEW=$(npm version ${{ steps.resolve.outputs.bump }} --no-git-tag-version)
+          echo "version=${NEW#v}" >> "$GITHUB_OUTPUT"
+          echo "tag=$NEW" >> "$GITHUB_OUTPUT"
+          echo "Bumped from ${LATEST_TAG:-package.json} to $NEW"
+
+      - name: Collate changelog
+        run: node scripts/release/collate-changelog.mjs "${{ steps.bump.outputs.version }}"
+
+      - name: Sanity build
+        run: npm run build
+        env:
+          VITE_BASE: /
+          VITE_PWA_IGNORE_PATHS: /preview/,/branch/
+
+      - name: Commit + tag
+        env:
+          TAG: ${{ steps.bump.outputs.tag }}
+          VERSION: ${{ steps.bump.outputs.version }}
+        run: |
+          git config user.name  'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git add package.json package-lock.json CHANGELOG.md .changes/unreleased
+          git commit -m "chore(release): v${VERSION}"
+          git tag -a "$TAG" -m "Release ${TAG}"
+          git push origin HEAD:main
+          git push origin "$TAG"
+
+  release:
+    needs: bump
+    uses: ./.github/workflows/release.yml
+    with:
+      tag: ${{ needs.bump.outputs.tag }}
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
+      packages: read
+    secrets: inherit
