@@ -1,0 +1,85 @@
+/* SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 */
+
+/* App stylesheet.
+
+     1. Tailwind v4 base + utilities.
+     2. The framework's prebuilt stylesheet — the theme-token map, the button /
+        elevation flavours, the drawer keyframes, and every preset palette.
+     3. `@source` — scan the installed framework package so the utility classes
+        its components use are emitted into this app's CSS.
+     4. App-shell layout: the html/body reset that makes this a full-viewport,
+        non-scrolling PWA. */
+
+@import "tailwindcss";
+@import "@niclaslindstedt/oss-framework/styles.css";
+
+@source "../node_modules/@niclaslindstedt/oss-framework/dist";
+
+/* Route the 1-wide border utilities and the bare `.rounded` through the
+   theme engine's knobs so the Appearance settings (border width, corner
+   radius) reach the framework components too. */
+.border {
+  border-width: var(--border-width, 1px);
+}
+.border-t {
+  border-top-width: var(--border-width, 1px);
+}
+.border-b {
+  border-bottom-width: var(--border-width, 1px);
+}
+.border-l {
+  border-left-width: var(--border-width, 1px);
+}
+.border-r {
+  border-right-width: var(--border-width, 1px);
+}
+.rounded {
+  border-radius: var(--radius-md, 0.375rem);
+}
+
+/* ── App-shell layout ────────────────────────────────────────────────────────
+   A full-viewport flex app whose panes own their own scroll regions, so the
+   document itself never scrolls. */
+:root {
+  --app-font-family:
+    "JetBrains Mono", "Fira Code", ui-monospace, "SF Mono", Menlo, Consolas,
+    "Liberation Mono", monospace;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+body {
+  background: var(--page-bg);
+  color: var(--fg);
+  font-family: var(--app-font-family);
+  font-size: calc(1rem * var(--app-font-scale));
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Installed iOS PWA edge-to-edge under the home indicator (see the sibling
+   apps: iOS only paints the full height when the root carries `100vh`). */
+@supports (-webkit-touch-callout: none) {
+  @media (display-mode: standalone) {
+    html,
+    body {
+      height: 100vh;
+    }
+    :root {
+      --app-height: 100vh;
+    }
+  }
+}
+
+/* The review preview and the output panes wrap long tokens (a URL, an
+   e-mail) rather than forcing a horizontal scroll. */
+.prose-pane {
+  overflow-wrap: anywhere;
+}

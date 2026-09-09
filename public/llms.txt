@@ -1,0 +1,21 @@
+# Mask
+
+> A local-first PWA built on @niclaslindstedt/oss-framework that masks personal
+> data in Swedish documents — names, street addresses, cities, postal codes,
+> phone numbers, personal identity numbers, e-mail and organisation numbers —
+> with placeholders you confirm, so the text can go to an LLM without the
+> details, and restores the details in the answer. Nothing leaves the browser.
+
+- App: https://mask.niclaslindstedt.se/
+- Source: https://github.com/niclaslindstedt/mask
+- Framework: https://github.com/niclaslindstedt/oss-framework
+
+## Features
+
+- Upload a PDF or text file, or paste text; detectors propose what to mask
+- Review every candidate, fix its kind, add what was missed, confirm
+- Projects remember placeholders so the same person gets the same one everywhere
+- Global always-mask / never-mask lists and custom regex patterns
+- Placeholder styles: AAA, aaa, $1, NAME1, [NAME 1], {{name1}}
+- Paste the LLM's answer back and restore the real values
+- Workspaces, themes, English/Swedish UI, installable offline PWA
