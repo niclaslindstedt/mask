@@ -17,7 +17,8 @@ src/
 │   ├── placeholders.ts   AAA / $1 / NAME1 placeholder schemes
 │   ├── textScan.ts       regex + literal scanning, overlap resolution, substitution
 │   ├── checkDigit.ts     Luhn
-│   ├── extractText/      file → text (PDF through a lazy pdf.js chunk)
+│   ├── extractText/      file → text (PDF through a lazy pdf.js chunk,
+│   │                     laid back out into paragraphs by `layout.ts`)
 │   ├── safeViewport.ts   the band a floating panel may land in (safe area + top chrome)
 │   └── components/       FileDropZone, StringListEditor, SpanText, CopyablePane,
 │                         SafeFloatingPanel, SafeSelect
@@ -126,6 +127,34 @@ is ever opened on anything older than Safari 18.4 / Chrome 122 / Firefox 131.
 (`extractText/streamChunks.ts`) instead of calling pdf.js's `getTextContent()`,
 which `for await`s over a `ReadableStream` — something no WebKit browser
 supports. Both are why a PDF upload works on an iPhone.
+
+### Reading a PDF back into paragraphs
+
+A PDF has no paragraphs — only glyphs at coordinates, handed back in the order
+the producer drew them. `extractText/layout.ts` is the pure pass that puts a
+page back together from that geometry, and `extractText/pdf.ts` does nothing
+but feed it pdf.js's positioned runs:
+
+1. Runs sharing a baseline become a line, with a space wherever the producer
+   drew a gap instead of one.
+2. A line drawn above the previous one, or a long leap down the page, starts a
+   new block; blocks are then read top-to-bottom, left-to-right. That is what
+   puts a footer the producer drew first at the foot of the page, and reads a
+   two-column page one column at a time.
+3. Inside a block, consecutive lines join into one paragraph unless the leading
+   grows, the next line is indented, a list marker starts it, or the line
+   stopped well short of the block's right margin. A word split by a soft
+   hyphen ("multi-" / "verktyg") is put back together; a hyphen the writer
+   typed ("A-traktor") is kept.
+4. Across pages, a header or footer that repeats at the same height on three or
+   more pages — page numbers aside — is dropped, and a sentence the page break
+   cut in half is rejoined.
+
+Every threshold is scaled from the page's own measurements (its leading, its
+margins, the font height) rather than fixed in points, so the pass does not
+assume a paper size or a type size. `tests/pdfLayout_test.ts` covers the rules
+one at a time; `tests/pdfExtract_test.ts` runs the whole thing over a real
+five-page judgment in `tests/fixtures/`.
 
 ## PWA
 

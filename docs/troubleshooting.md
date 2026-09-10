@@ -16,6 +16,15 @@ The file is a scanned image without a text layer. Run it through OCR first
 (any PDF tool that adds a text layer), or copy the text out and use **Paste
 text**.
 
+## A PDF's text comes out in the wrong order, or a paragraph is broken up
+
+Text is reassembled from where the glyphs sit on the page: lines that wrap into
+one another become one paragraph, and blocks are read top-to-bottom,
+left-to-right. A page laid out in a way that geometry can't speak for — a
+table, a form with side-by-side boxes, text flowing around a figure — can still
+come out ordered oddly or run together. Edit the document text in the intake,
+or copy the part you need and use **Paste text**.
+
 ## A PDF fails to read on an older browser
 
 Text extraction runs on pdf.js, which needs a browser from late 2023 or newer
