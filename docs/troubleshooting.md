@@ -16,6 +16,12 @@ The file is a scanned image without a text layer. Run it through OCR first
 (any PDF tool that adds a text layer), or copy the text out and use **Paste
 text**.
 
+## A PDF fails to read on an older browser
+
+Text extraction runs on pdf.js, which needs a browser from late 2023 or newer
+(Safari / iOS 17.4, Chrome 119, Firefox 121). Everything else in the app works
+without it — copy the text out of the PDF and use **Paste text**.
+
 ## A name was not detected
 
 The name detector anchors on dictionaries of common Swedish given names and

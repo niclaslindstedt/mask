@@ -81,6 +81,14 @@ English catalog. Deferred behind `import()`: the Swedish catalog, the
 dictionaries data chunk (on first review), pdf.js (on the first PDF), the
 Settings modal, and the changelog payload.
 
+The PDF chunk pulls pdf.js from `pdfjs-dist`'s `legacy/` build: the default
+build reads the `Iterator` global at module scope, so it throws before a page
+is ever opened on anything older than Safari 18.4 / Chrome 122 / Firefox 131.
+`extractText/pdf.ts` also reads each page's text stream through a reader
+(`extractText/streamChunks.ts`) instead of calling pdf.js's `getTextContent()`,
+which `for await`s over a `ReadableStream` — something no WebKit browser
+supports. Both are why a PDF upload works on an iPhone.
+
 ## PWA
 
 `pwa-plugin.ts` emits the service worker, `manifest.webmanifest`,

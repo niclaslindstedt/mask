@@ -1,13 +1,39 @@
 // SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 // The PDF half of `extractText`, split into its own chunk: `pdfjs-dist` is
 // the one heavy dependency in the app and only a PDF upload needs it.
-import * as pdfjs from "pdfjs-dist";
-import type { TextItem } from "pdfjs-dist/types/src/display/api";
-import workerUrl from "pdfjs-dist/build/pdf.worker.min.mjs?url";
+//
+// Both imports point at pdf.js's `legacy/` build. The default build assumes a
+// browser from the last few months — it reads the `Iterator` global at module
+// scope, so it throws `Iterator is not defined` before a page is ever opened on
+// anything older (Safari < 18.4, Chrome < 122, Firefox < 131). The legacy build
+// carries the polyfills for that, and the ~60 KB it costs lands in a chunk
+// nobody downloads until they upload a PDF.
+import * as pdfjs from "pdfjs-dist/legacy/build/pdf.mjs";
+import type {
+  PDFPageProxy,
+  TextContent,
+  TextItem,
+} from "pdfjs-dist/types/src/display/api";
+import workerUrl from "pdfjs-dist/legacy/build/pdf.worker.min.mjs?url";
 
+import { forEachChunk } from "./streamChunks.ts";
 import type { ExtractedText } from "./index.ts";
 
 pdfjs.GlobalWorkerOptions.workerSrc = workerUrl;
+
+/** A page's positioned text runs. pdf.js's own `page.getTextContent()` is a
+ *  `for await` over this stream, which throws in WebKit — no browser there
+ *  async-iterates a `ReadableStream` — so read the stream with a reader and
+ *  keep the runs we care about. */
+async function readTextItems(page: PDFPageProxy): Promise<TextItem[]> {
+  const items: TextItem[] = [];
+  await forEachChunk<TextContent>(page.streamTextContent(), (chunk) => {
+    for (const item of chunk.items) {
+      if ("str" in item) items.push(item);
+    }
+  });
+  return items;
+}
 
 /** Reassemble a page's positioned text runs into lines. pdf.js hands the runs
  *  back in content order with a transform each; a run whose baseline moved
@@ -46,10 +72,8 @@ export async function extractPdfText(
     const pages: string[] = [];
     for (let p = 1; p <= doc.numPages; p++) {
       const page = await doc.getPage(p);
-      const content = await page.getTextContent();
-      const items = content.items.filter((i): i is TextItem => "str" in i);
       pages.push(
-        joinTextItems(items)
+        joinTextItems(await readTextItems(page))
           .replace(/\n{3,}/g, "\n\n")
           .trim(),
       );
