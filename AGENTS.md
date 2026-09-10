@@ -136,6 +136,55 @@ Before building any UI primitive, gesture, or generic mechanic, check whether
 build app-local UI when the framework has no fit — and when what you build is
 generic, put it in `src/generic/` so it can migrate.
 
+### Then read the sibling `contacts` app
+
+Almost everything mask needs that **isn't a masking concern** has been solved
+once already, in
+[`niclaslindstedt/contacts`](https://github.com/niclaslindstedt/contacts) — the
+other, more mature adoption of the same framework. Settings tabs, glyph
+handling, the sidebar, buttons, dropdowns, pickers and popovers, toasts,
+theming, routing and the back button, native-feel details (safe-area insets,
+swipe gestures, standalone/install behaviour), the PWA and service-worker
+plumbing, CI and the deployment slots: read how `contacts` does it and follow
+that shape instead of inventing a second one. The two apps staying in step is
+what keeps a mechanic cheap to lift into the framework later.
+
+The order of preference is **framework → `contacts` → new code here**. If the
+framework ships it, use the framework; `contacts` then shows how to consume it.
+If `contacts` solves it app-locally and the solution carries no domain, it
+belongs in `src/generic/` here rather than `src/app/`. mask's own half is the
+domain and nothing else: detectors, dictionaries, the masking pipeline, rules,
+review and restore.
+
+Clone it read-only when you need to look — never vendor it, never commit it:
+
+```sh
+git clone --depth 1 https://github.com/niclaslindstedt/contacts /tmp/contacts
+```
+
+| Looking for                              | Read in `contacts`                                                                                      |
+| ---------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| Settings modal, adding a settings tab    | `src/app/SettingsModal.tsx`, `src/app/settings/{tabs,shared}.tsx`                                       |
+| Glyphs, icons, per-item marks            | `src/app/contactGlyphs.ts`, `src/app/icons.tsx`, the framework's glyph catalogue                        |
+| Sidebar / side-menu rows                 | `src/app/SideMenuContent.tsx`, `src/app/SideMenuRows.tsx`                                               |
+| Buttons, dropdowns, pickers, popovers    | `src/app/ContactListFilters.tsx`, `MassEditModal.tsx`, `ContactAppearancePopover.tsx`                   |
+| Theme / accent handling                  | `src/app/look.ts`                                                                                       |
+| Toasts                                   | `src/app/toast.ts`, `AppToastViewport.tsx`, `SelectToast.tsx`                                           |
+| Routing, history, the back button        | `src/app/route.ts`, `useAppRoute.ts`, `useNavigation.ts`                                                |
+| Native feel: safe areas, swipe, keyboard | `src/styles.css`, `src/app/swipeNavigation.ts`, `useCardEdgeSwipeOpen.ts`, `useSwipeNavigationGuard.ts` |
+| PWA, service worker, update prompt       | `pwa-plugin.ts`, `src/app/pwa.ts`                                                                       |
+| CI, release, deployment slots, mirroring | `.github/workflows/{ci,pages,release,mirror}.yml`, `scripts/release/`                                   |
+| Changelog fragments, feature docs        | `.changes/`, `docs/features/`, `src/app/changelog.ts`                                                   |
+| i18n catalogue shape (`en` + `sv`)       | `src/app/i18n/`                                                                                         |
+| Maintenance skills                       | `.agent/skills/` — note mask's own tree is `.agents/skills/` per §21                                    |
+
+Two parts of `contacts` are **not** for mask: it syncs to Dropbox / Google
+Drive and it stores photos and attachments. mask is local-only by design —
+nothing a user pastes or uploads leaves the browser — so never port the sync,
+storage-adapter, or encryption paths across. And borrowing is never copying
+wholesale: keep this repo's naming, its `src/generic/` boundary, the `en`/`sv`
+parity rule, and the 1000-line file cap.
+
 ### Keep the framework current
 
 Before starting a task, check the newest release with
