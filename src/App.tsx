@@ -39,6 +39,7 @@ import { APP_LOOK } from "./app/look.ts";
 import { logStore } from "./app/log.ts";
 import { cacheIdForBase } from "./app/pwa.ts";
 import { useAppSettings } from "./app/useAppSettings.ts";
+import { useCustomKinds } from "./app/useCustomKinds.ts";
 import { localDocBackend, useMaskStore } from "./app/useMaskStore.ts";
 import { useNamespaces } from "./app/useNamespaces.ts";
 import { useRules } from "./app/useRules.ts";
@@ -88,6 +89,8 @@ export function App() {
   }, [devSeed.testData]);
   const store = useMaskStore(ns.activeSlug, backend);
   const rules = useRules();
+  // The user's own placeholder types: the global list plus this workspace's.
+  const kinds = useCustomKinds(ns.activeSlug);
   const { settings, setSettings } = useAppSettings();
   const [view, setView] = useState<View>("project");
   const [namespacesOpen, setNamespacesOpen] = useState(false);
@@ -215,7 +218,7 @@ export function App() {
 
       <main className="relative flex min-w-0 flex-1 flex-col overflow-hidden">
         {view === "rules" ? (
-          <RulesScreen rules={rules} />
+          <RulesScreen rules={rules} kinds={kinds} />
         ) : project ? (
           <ProjectScreen
             key={project.id}
@@ -223,6 +226,7 @@ export function App() {
             store={store}
             rules={rules}
             settings={settings}
+            kinds={kinds}
           />
         ) : (
           <EmptyScreen
@@ -244,6 +248,8 @@ export function App() {
             setAppearance={setAppearance}
             settings={settings}
             commitSettings={setSettings}
+            kinds={kinds}
+            workspaceName={ns.activeNamespace.name}
             pwa={pwa}
           />
         </Suspense>

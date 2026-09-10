@@ -23,6 +23,9 @@ to restore the real values. Nothing leaves your browser.
 - **Projects remember.** The placeholders a project has minted are reused in
   every later document, so the same person is the same placeholder in the
   letter and in the reply — and the answer restores cleanly.
+- **Placeholders that carry the role.** Mask a value under a name of your own —
+  `JUDGE1` rather than `NAME1` — one value at a time, or from a list of
+  placeholder types you keep per workspace or across all of them.
 - **Rules carry everywhere.** A global always-mask list, a never-mask list, and
   your own regex patterns apply across every workspace and project.
 - **Swedish first.** Personal identity and organisation numbers are
@@ -78,7 +81,8 @@ onto the intake (or press **Paste text**), review what was found, press
 - **Review** — every candidate has a checkbox, a kind, and the placeholder it
   will get (or the one it already has). Untick a false positive, change a kind,
   type a missed value, or select text in the preview and press **Mask “…”**.
-  Clicking a highlight toggles it.
+  Clicking a highlight toggles it. Every kind picker ends in **Custom type…**,
+  which takes a name of your own for that value.
 - **Confirm and mask** — produces the masked text in the output pane, with a
   copy button. Confirm again after changes to update it.
 - **Placeholders** — the project's table of placeholder ↔ value ↔ kind; add one
@@ -88,6 +92,9 @@ onto the intake (or press **Paste text**), review what was found, press
   the project swapped for the real value.
 - **Rules** — the side-menu button opens the global always-mask / never-mask
   lists and the custom regex patterns, with a live tester.
+- **Placeholder types** — Settings → Masking keeps the custom types you reuse
+  (Judge, Plaintiff, Car…), each one global or bound to the workspace it was
+  added in.
 - **Workspaces** — the switcher at the top of the side menu keeps separate
   sets of projects; the rules apply to all of them.
 - **Search** — the magnifier, **Ctrl/Cmd+K**, or just start typing; finds
@@ -97,7 +104,8 @@ onto the intake (or press **Paste text**), review what was found, press
 
 `AAA`, `aaa`, `$1`, `NAME1`, `[NAME 1]`, `{{name1}}` — pick the default in
 Settings → Masking and override it per project. Kind-based styles tell the LLM
-what a placeholder stands for; letter styles give nothing away.
+what a placeholder stands for — including a custom type's name, so a value
+typed as "Judge" masks to `JUDGE1`; letter styles give nothing away.
 
 ### Install as an app
 

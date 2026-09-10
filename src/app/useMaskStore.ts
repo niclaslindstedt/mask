@@ -3,6 +3,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { DEFAULT_NAMESPACE_SLUG } from "@niclaslindstedt/oss-framework/namespaces";
 
+import type { PlaceholderStyle } from "../generic/placeholders.ts";
+import { retokenForKind } from "./masking.ts";
 import { emptyDoc, parseDoc, serializeDoc } from "./migrations.ts";
 import type { AppData, Doc, Project, Variable } from "./types.ts";
 import * as output from "../output.ts";
@@ -328,6 +330,18 @@ export function useMaskStore(
     [patchProject],
   );
 
+  /** Re-type a placeholder. In a kind-based style a placeholder the app minted
+   *  is renamed to match ("Anna" retyped from Name to Judge goes `NAME1` →
+   *  `JUDGE1`); one the user typed keeps its name. */
+  const setVariableKind = useCallback(
+    (projectId: string, id: string, kind: string, style: PlaceholderStyle) =>
+      patchProject(projectId, (p) => ({
+        ...p,
+        variables: retokenForKind(p.variables, id, kind, style),
+      })),
+    [patchProject],
+  );
+
   const removeVariable = useCallback(
     (projectId: string, id: string) =>
       patchProject(projectId, (p) => ({
@@ -365,6 +379,7 @@ export function useMaskStore(
     confirmMask,
     addVariable,
     updateVariable,
+    setVariableKind,
     removeVariable,
     unignore,
   };

@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 import {
+  formatPlaceholder,
   mintPlaceholder,
   type PlaceholderStyle,
 } from "../generic/placeholders.ts";
@@ -231,6 +232,44 @@ export function tokensPresent(
   );
   const ids = new Set(hits.map((h) => h.kind));
   return variables.filter((v) => ids.has(v.id));
+}
+
+/** Whether a token is one this style would have minted for `kind` — i.e. the
+ *  app named it, rather than the user typing a placeholder of their own. The
+ *  search is bounded by how many placeholders could have been minted before
+ *  it. */
+function wasMintedFor(
+  token: string,
+  kind: string,
+  style: PlaceholderStyle,
+  bound: number,
+): boolean {
+  for (let i = 1; i <= bound; i++) {
+    if (formatPlaceholder(style, i, kind) === token) return true;
+  }
+  return false;
+}
+
+/** A variable's kind changed: in a style that spells the kind into the
+ *  placeholder, a placeholder the app minted follows the new kind (a value
+ *  re-typed as "Judge" becomes `JUDGE1`), while one the user typed by hand
+ *  stays exactly as they wrote it. */
+export function retokenForKind(
+  variables: readonly Variable[],
+  id: string,
+  kind: string,
+  style: PlaceholderStyle,
+): Variable[] {
+  const current = variables.find((v) => v.id === id);
+  if (!current || current.kind === kind) return [...variables];
+  if (!wasMintedFor(current.token, current.kind, style, variables.length + 1)) {
+    return variables.map((v) => (v.id === id ? { ...v, kind } : v));
+  }
+  const taken = new Set(
+    variables.filter((v) => v.id !== id).map((v) => v.token),
+  );
+  const token = mintPlaceholder(style, kind, taken);
+  return variables.map((v) => (v.id === id ? { ...v, kind, token } : v));
 }
 
 /** The placeholder style a project masks in. */

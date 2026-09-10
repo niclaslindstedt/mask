@@ -26,6 +26,8 @@ Settings opens from the side-menu footer.
 |                | Capture logs              | Keeps the in-app log so the Logs tab shows something.                                                                                                                      |
 | **Appearance** | Theme, font, density, …   | The framework's appearance picker; previews live.                                                                                                                          |
 | **Masking**    | Default placeholder style | The style new projects mask in (a project can override it).                                                                                                                |
+|                | Placeholder types         | Your own kinds of value (Judge, Plaintiff, Car…), offered in every kind picker. Applies immediately rather than on Save.                                                   |
+|                | New types apply to        | Where the next placeholder type is saved: this workspace only (the default), or every workspace. The picker on a type's row moves it afterwards.                           |
 |                | Detectors                 | Switch any of the eight built-in detectors off.                                                                                                                            |
 | **Developer**  | Test data                 | Swaps the workspace for sample projects built from `examples/`. In memory only — nothing is written, and your own projects come back when it goes off or the page reloads. |
 
@@ -37,6 +39,8 @@ For the curious (and for a manual backup via the browser's devtools):
 | ------------------------------------------ | -------------------------------------------------- |
 | `mask:doc` / `mask:doc:<slug>`             | A workspace's projects, documents and placeholders |
 | `mask:rules`                               | The global always / never / pattern rules          |
+| `mask:kinds`                               | The placeholder types shared by every workspace    |
+| `mask:kinds:ws:<slug>`                     | A workspace's own placeholder types                |
 | `mask:settings`                            | The in-app settings above                          |
 | `mask:namespaces`, `mask:namespace:active` | The workspace registry and the active one          |
 | `mask:language`                            | The interface language                             |

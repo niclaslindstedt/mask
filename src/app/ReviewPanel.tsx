@@ -6,16 +6,18 @@ import { defaultToastStore } from "@niclaslindstedt/oss-framework/components";
 
 import {
   CopyablePane,
-  SafeSelect,
+  SelectOrCreate,
   SpanText,
   type HighlightSpan,
 } from "../generic/components/index.ts";
+import { kindLabelProblem, normalizeKindLabel } from "./customKinds.ts";
 import { kindClass, kindLabel, kindOptions } from "./kinds.ts";
 import { useT } from "./i18n/index.ts";
 import { buildMaskPlan, detectCandidates, projectStyle } from "./masking.ts";
 import type { Doc, Project } from "./types.ts";
 import type { AppSettings } from "./useAppSettings.ts";
 import { useDictionariesReady } from "./useDictionariesReady.ts";
+import type { CustomKindsStore } from "./useCustomKinds.ts";
 import { freshId, type MaskStore } from "./useMaskStore.ts";
 import type { RulesStore } from "./useRules.ts";
 import * as output from "../output.ts";
@@ -25,6 +27,11 @@ import * as output from "../output.ts";
 // picker, and the placeholder it will get — over the original text with
 // every candidate marked, and the masked output once confirmed. A value the
 // detectors missed can be added by hand or by selecting it in the preview.
+//
+// Every kind picker here ends in "Custom type…", which takes a label typed on
+// the spot: a value masked as "Judge" becomes `JUDGE1` rather than `NAME1`,
+// so the LLM reads the role and not just the slot. The label lives on that
+// value alone — the reusable ones are added in Settings → Masking.
 
 type Props = {
   project: Project;
@@ -32,11 +39,19 @@ type Props = {
   store: MaskStore;
   rules: RulesStore;
   settings: AppSettings;
+  kinds: CustomKindsStore;
 };
 
 type Row = { value: string; kind: string; include: boolean; manual?: boolean };
 
-export function ReviewPanel({ project, doc, store, rules, settings }: Props) {
+export function ReviewPanel({
+  project,
+  doc,
+  store,
+  rules,
+  settings,
+  kinds,
+}: Props) {
   const t = useT();
   const ready = useDictionariesReady();
   const style = projectStyle(project, settings.placeholderStyle);
@@ -171,10 +186,25 @@ export function ReviewPanel({ project, doc, store, rules, settings }: Props) {
     });
   }
 
-  const kinds = kindOptions(t, [
+  // The saved placeholder types first, then any label that only exists in
+  // this project's data — a one-off typed in an earlier review, a pattern
+  // rule's kind — so a picker never drops the value it is showing.
+  const kindChoices = kindOptions(t, [
+    ...kinds.all.map((k) => k.label),
     ...rows.map((r) => r.kind),
     ...project.variables.map((v) => v.kind),
   ]);
+  const createLabels = {
+    create: t("kinds.createOption"),
+    createPlaceholder: t("kinds.createPlaceholder"),
+    createLabel: t("kinds.createLabel"),
+    confirm: t("kinds.createConfirm"),
+    cancel: t("common.cancel"),
+  };
+  // A one-off label follows the same rules as a saved type, except that it is
+  // never compared against the saved ones: typing a label a saved type already
+  // has just picks that type.
+  const acceptKind = (value: string) => kindLabelProblem(value) === null;
   const allOn = rows.every((r) => r.include);
   const existingTokens = new Set(project.variables.map((v) => v.token));
   void existingTokens;
@@ -239,10 +269,13 @@ export function ReviewPanel({ project, doc, store, rules, settings }: Props) {
                           {kindLabel(cand.variable.kind, t)}
                         </span>
                       ) : (
-                        <SafeSelect<string>
+                        <SelectOrCreate
                           value={row.kind}
-                          options={kinds}
+                          options={kindChoices}
                           onChange={(k) => setKind(row.value, k)}
+                          labels={createLabels}
+                          accept={acceptKind}
+                          normalize={normalizeKindLabel}
                           ariaLabel={t("review.kindPickerLabel")}
                           triggerClassName="w-full rounded border border-line bg-surface px-2 py-1 text-left text-xs text-fg"
                         />
@@ -279,10 +312,13 @@ export function ReviewPanel({ project, doc, store, rules, settings }: Props) {
             }}
             className="min-w-0 flex-1 rounded-md border border-line bg-surface px-3 py-1.5 text-sm text-fg-bright placeholder:text-muted focus:border-accent focus:outline-none"
           />
-          <SafeSelect<string>
+          <SelectOrCreate
             value={manualKind}
-            options={kinds}
+            options={kindChoices}
             onChange={setManualKind}
+            labels={createLabels}
+            accept={acceptKind}
+            normalize={normalizeKindLabel}
             ariaLabel={t("review.kindPickerLabel")}
           />
           <Button

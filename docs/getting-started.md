@@ -21,7 +21,8 @@ The app opens in the **General** workspace with no project yet.
    kind, and the placeholder it will get. Untick a false positive, change a
    kind, or add a value the detectors missed — type it in, or select it in the
    preview and press **Mask “…”**. Clicking a highlight in the preview toggles
-   it too.
+   it too. The kind picker ends in **Custom type…**: name the value yourself
+   ("Judge") and it masks to `JUDGE1` instead of `NAME1`.
 4. **Confirm and mask** — the masked text appears in the output pane. Press
    **Copy** and paste it into your LLM.
 5. **Restore** — paste the answer into the **Restore** tab; every placeholder
@@ -46,6 +47,20 @@ Settings → **Masking** picks the default style for new projects; a project's
 
 The kind-based styles tell the LLM what each placeholder stands for, which
 usually gives a better answer. The letter styles give nothing away.
+
+## Placeholder types
+
+The eight kinds the detectors know are not the only ones you can use. **Custom
+type…**, at the end of every kind picker, takes a name for that one value; the
+kind-based styles spell it into the placeholder, so a value typed as "Judge"
+becomes `JUDGE1`, counted separately from the names and the phone numbers.
+
+Settings → **Masking** → **Placeholder types** keeps the ones you reuse. Each
+type is either global or bound to one workspace — **New types apply to** sets
+where the next one lands, and the picker on a type's row moves it afterwards.
+A workspace-scoped type is gone when you switch workspaces, so a case load's
+own vocabulary stays with it. See
+[`features/placeholder-types.md`](features/placeholder-types.md).
 
 ## Rules
 

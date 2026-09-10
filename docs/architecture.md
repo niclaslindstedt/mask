@@ -20,7 +20,7 @@ src/
 │   ├── extractText/      file → text (PDF through a lazy pdf.js chunk)
 │   ├── safeViewport.ts   the band a floating panel may land in (safe area + top chrome)
 │   └── components/       FileDropZone, StringListEditor, SpanText, CopyablePane,
-│                         SafeFloatingPanel, SafeSelect
+│                         SafeFloatingPanel, SafeSelect, SelectOrCreate
 └── app/                the domain
     ├── types.ts          Project / Doc / Variable / GlobalRules
     ├── detectors/        the Swedish-context detectors + generated dictionaries
@@ -28,6 +28,8 @@ src/
     ├── useMaskStore.ts   projects per workspace, undo/redo, storage backend
     ├── dev/              the developer test-data backend (lazy, dev-only)
     ├── useRules.ts       the global rules (one key across workspaces)
+    ├── customKinds.ts    custom placeholder types: label rules, list transforms (pure)
+    ├── useCustomKinds.ts those types' two lists — global, and per workspace
     ├── useAppSettings.ts, useNamespaces.ts, migrations.ts, log.ts
     ├── i18n/             en + sv catalogs over the framework's createI18n
     └── *Screen / *Tab / *Panel.tsx   the screens
@@ -70,12 +72,19 @@ through them.
    built-in detectors scan; overlapping spans resolve longest-first, then by
    priority; never-listed and project-rejected values drop out; spans group
    by distinct value into candidates.
-2. **Review** (`ReviewPanel`): the user ticks, retypes kinds, adds values.
+2. **Review** (`ReviewPanel`): the user ticks, retypes kinds, adds values. A
+   kind is a free string, so a kind picker's **Custom type…** entry can hand a
+   value any label — saved types (`useCustomKinds`) are the same labels, kept
+   for reuse.
 3. **Plan** (`buildMaskPlan`): included values without a variable get one
    minted in the project's placeholder style; every project variable is
    applied to the text (longest value first, whole words, a genitive `s`
    allowed to trail).
 4. **Restore** (`unmaskText`): the same substitution the other way round.
+
+Re-typing a placeholder afterwards goes through `retokenForKind`: a token this
+style would have minted for the old kind is re-minted for the new one, so
+`NAME1` becomes `JUDGE1`; a token the user typed by hand is left alone.
 
 The detectors that need a dictionary (`name`, `city`) read module-level sets
 filled by `loadDictionaries()`, a lazy import of the ~200 KB generated data

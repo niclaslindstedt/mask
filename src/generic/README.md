@@ -23,3 +23,4 @@ here; nothing here may import from `src/app/`.
 | [`components/CopyablePane.tsx`](components)      | A read-only text pane with a copy button and a character count.                                                                     |
 | [`components/SafeFloatingPanel.tsx`](components) | The framework's `FloatingPanel` measured against the safe band, so a panel never lands under the status bar or the app's top bar.   |
 | [`components/SafeSelect.tsx`](components)        | The framework's `SelectPicker` over `SafeFloatingPanel` — same combobox behaviour, safe-area-aware menu placement.                  |
+| [`components/SelectOrCreate.tsx`](components)    | A `SafeSelect` ending in "something else…" — choosing it swaps the trigger for a field, and what is typed becomes the value.        |

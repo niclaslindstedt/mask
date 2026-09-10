@@ -4,11 +4,13 @@ import { useCallback } from "react";
 import { useLocalStorageState } from "@niclaslindstedt/oss-framework/hooks";
 
 import type { PlaceholderStyle } from "../generic/placeholders.ts";
+import type { KindScope } from "./customKinds.ts";
 import { ALL_DETECTORS_ON, type DetectorId } from "./detectors/index.ts";
 
 // The app's own (non-theme) settings — how the side menu opens, developer
-// mode, log capture, the default placeholder style, and which built-in
-// detectors run. Persisted to localStorage so a reload keeps the choices.
+// mode, log capture, the default placeholder style, which built-in detectors
+// run, and where a new placeholder type is saved. Persisted to localStorage so
+// a reload keeps the choices.
 // (The active *language* is owned by the framework i18n runtime.)
 
 export type MenuMode = "swipe" | "button";
@@ -20,6 +22,9 @@ export type AppSettings = {
   /** The placeholder style a project uses unless it overrides it. */
   placeholderStyle: PlaceholderStyle;
   detectors: Record<DetectorId, boolean>;
+  /** Where a placeholder type added in Settings lands: this workspace only,
+   *  or every workspace. */
+  kindScope: KindScope;
 };
 
 export const DEFAULT_SETTINGS: AppSettings = {
@@ -28,6 +33,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   captureLogs: false,
   placeholderStyle: "kindNumber",
   detectors: ALL_DETECTORS_ON,
+  kindScope: "workspace",
 };
 
 const STORAGE_KEY = "mask:settings";
@@ -42,6 +48,10 @@ function parseSettings(raw: string): AppSettings {
     ...DEFAULT_SETTINGS,
     ...stored,
     detectors: { ...ALL_DETECTORS_ON, ...(stored.detectors ?? {}) },
+    kindScope:
+      stored.kindScope === "global" || stored.kindScope === "workspace"
+        ? stored.kindScope
+        : DEFAULT_SETTINGS.kindScope,
   };
 }
 

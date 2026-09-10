@@ -15,6 +15,7 @@ import { SwapIcon, TagIcon } from "./icons.tsx";
 import { useT } from "./i18n/index.ts";
 import type { Project } from "./types.ts";
 import type { AppSettings } from "./useAppSettings.ts";
+import type { CustomKindsStore } from "./useCustomKinds.ts";
 import type { MaskStore } from "./useMaskStore.ts";
 import type { RulesStore } from "./useRules.ts";
 
@@ -46,9 +47,16 @@ type Props = {
   store: MaskStore;
   rules: RulesStore;
   settings: AppSettings;
+  kinds: CustomKindsStore;
 };
 
-export function ProjectScreen({ project, store, rules, settings }: Props) {
+export function ProjectScreen({
+  project,
+  store,
+  rules,
+  settings,
+  kinds,
+}: Props) {
   const t = useT();
   const [tab, setTab] = useState<Tab>("documents");
 
@@ -88,10 +96,16 @@ export function ProjectScreen({ project, store, rules, settings }: Props) {
             store={store}
             rules={rules}
             settings={settings}
+            kinds={kinds}
           />
         )}
         {tab === "variables" && (
-          <VariablesTab project={project} store={store} settings={settings} />
+          <VariablesTab
+            project={project}
+            store={store}
+            settings={settings}
+            kinds={kinds}
+          />
         )}
         {tab === "restore" && <RestoreTab project={project} />}
       </div>
