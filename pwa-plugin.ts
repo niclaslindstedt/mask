@@ -63,7 +63,7 @@ function channelName(base: string): { name: string; short_name: string } {
   if (base === "/branch/")
     return { name: "Mask (branch)", short_name: "Mask br" };
   return {
-    name: "Mask — mask personal data before it reaches an LLM",
+    name: "Mask",
     short_name: "Mask",
   };
 }
