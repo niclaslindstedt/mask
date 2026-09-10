@@ -76,7 +76,9 @@ onto the intake (or press **Paste text**), review what was found, press
   documents and the placeholders they share. Right-click (or swipe) a row to
   rename or delete it. Everything is one Undo away (Ctrl/Cmd-Z).
 - **Documents** — drop a PDF or text file onto the intake, press it to browse,
-  or **Paste text**. PDFs are read in the browser; a scanned PDF needs OCR
+  or **Paste text**. PDFs are read in the browser and laid back out into
+  paragraphs — wrapped lines rejoined, hyphenated words put back together,
+  running headers dropped, footers read in their place; a scanned PDF needs OCR
   first.
 - **Review** — every candidate has a checkbox, a kind, and the placeholder it
   will get (or the one it already has). Untick a false positive, change a kind,

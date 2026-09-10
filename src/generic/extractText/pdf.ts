@@ -17,6 +17,12 @@ import type {
 import workerUrl from "pdfjs-dist/legacy/build/pdf.worker.min.mjs?url";
 
 import { forEachChunk } from "./streamChunks.ts";
+import {
+  groupRunsIntoLines,
+  layoutDocumentLines,
+  type TextLine,
+  type TextRun,
+} from "./layout.ts";
 import type { ExtractedText } from "./index.ts";
 
 pdfjs.GlobalWorkerOptions.workerSrc = workerUrl;
@@ -35,32 +41,21 @@ async function readTextItems(page: PDFPageProxy): Promise<TextItem[]> {
   return items;
 }
 
-/** Reassemble a page's positioned text runs into lines. pdf.js hands the runs
- *  back in content order with a transform each; a run whose baseline moved
- *  from the previous one starts a new line, and a run that begins clear of the
- *  previous run's end gets a space, so words don't fuse. */
-export function joinTextItems(items: readonly TextItem[]): string {
-  let out = "";
-  let lastY: number | null = null;
-  let lastEndX = 0;
-  for (const item of items) {
+/** pdf.js's positioned items, in the shape the layout pass reads: its
+ *  `transform` is a full matrix, of which only the translation is geometry a
+ *  reflow cares about. */
+export function toTextRuns(items: readonly TextItem[]): TextRun[] {
+  return items.map((item) => {
     const [, , , , x, y] = item.transform as number[];
-    if (lastY !== null && Math.abs(y! - lastY) > 2) {
-      out = out.replace(/[ \t]+$/, "") + "\n";
-      lastEndX = 0;
-    } else if (out.length > 0 && !out.endsWith("\n") && x! - lastEndX > 1) {
-      if (!out.endsWith(" ")) out += " ";
-    }
-    out += item.str;
-    if (item.hasEOL) {
-      out += "\n";
-      lastEndX = 0;
-    } else {
-      lastEndX = x! + item.width;
-    }
-    lastY = y!;
-  }
-  return out;
+    return {
+      text: item.str,
+      x: x!,
+      y: y!,
+      width: item.width,
+      height: item.height,
+      hasEOL: item.hasEOL,
+    };
+  });
 }
 
 export async function extractPdfText(
@@ -69,16 +64,17 @@ export async function extractPdfText(
   const task = pdfjs.getDocument({ data });
   const doc = await task.promise;
   try {
-    const pages: string[] = [];
+    // Grouped into lines page by page, so only one page's runs are ever held.
+    const pages: TextLine[][] = [];
     for (let p = 1; p <= doc.numPages; p++) {
-      const page = await doc.getPage(p);
-      pages.push(
-        joinTextItems(await readTextItems(page))
-          .replace(/\n{3,}/g, "\n\n")
-          .trim(),
-      );
+      const items = await readTextItems(await doc.getPage(p));
+      pages.push(groupRunsIntoLines(toTextRuns(items)));
     }
-    return { text: pages.join("\n\n"), kind: "pdf", pages: doc.numPages };
+    return {
+      text: layoutDocumentLines(pages).trim(),
+      kind: "pdf",
+      pages: doc.numPages,
+    };
   } finally {
     await task.destroy();
   }

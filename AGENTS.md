@@ -101,7 +101,8 @@ stores ("store stays in the app"):
   `VariablesTab` / `RestoreTab`, `RulesScreen.tsx`, `SideMenuContent.tsx`,
   `SettingsModal.tsx` + `settings/`, `SearchOverlay.tsx` — the screens.
 - `src/generic/` — **framework candidates**: placeholder schemes, text
-  scanning / substitution, Luhn, file → text extraction, the safe-area band
+  scanning / substitution, Luhn, file → text extraction (including the pass
+  that lays a PDF's positioned runs back out into paragraphs), the safe-area band
   floating panels are placed in (`safeViewport.ts`), and six components.
   Written to the framework's rules (no domain names, labels injected); nothing
   here imports from `src/app/`. Lift into the framework when a second app
@@ -223,6 +224,10 @@ They carry the `oss-spec:allow-large-file` marker and are Prettier-ignored.
   every detector (fixture strings in Swedish), the masking pipeline round trip,
   migrations, and the search corpus. Detector and pipeline tests
   `await loadDictionaries()` in `beforeAll`.
+- Binary fixtures live in `tests/fixtures/`. `pdfExtract_test.ts` runs the real
+  pdf.js over the PDF there; because the app's worker URL is a bundler URL, it
+  points `pdfjs.GlobalWorkerOptions.workerSrc` at the copy in `node_modules`
+  first — so that test needs `make install` to have run.
 
 ## Source file size
 
