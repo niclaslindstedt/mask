@@ -18,15 +18,16 @@ All optional. Set them as Vite env vars (`.env`, or the workflow's `env:`).
 
 Settings opens from the side-menu footer.
 
-| Tab            | Setting                   | Effect                                                                    |
-| -------------- | ------------------------- | ------------------------------------------------------------------------- |
-| **General**    | Language                  | English or Swedish, applied immediately.                                  |
-|                | Open the side menu with   | Floating button or edge swipe, on phones.                                 |
-|                | Developer mode            | Shows the Developer tab (build identity, update check, erase local data). |
-|                | Capture logs              | Keeps the in-app log so the Logs tab shows something.                     |
-| **Appearance** | Theme, font, density, …   | The framework's appearance picker; previews live.                         |
-| **Masking**    | Default placeholder style | The style new projects mask in (a project can override it).               |
-|                | Detectors                 | Switch any of the eight built-in detectors off.                           |
+| Tab            | Setting                   | Effect                                                                                                                                                                     |
+| -------------- | ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **General**    | Language                  | English or Swedish, applied immediately.                                                                                                                                   |
+|                | Open the side menu with   | Floating button or edge swipe, on phones.                                                                                                                                  |
+|                | Developer mode            | Shows the Developer tab (test data, build identity, update check, erase local data).                                                                                       |
+|                | Capture logs              | Keeps the in-app log so the Logs tab shows something.                                                                                                                      |
+| **Appearance** | Theme, font, density, …   | The framework's appearance picker; previews live.                                                                                                                          |
+| **Masking**    | Default placeholder style | The style new projects mask in (a project can override it).                                                                                                                |
+|                | Detectors                 | Switch any of the eight built-in detectors off.                                                                                                                            |
+| **Developer**  | Test data                 | Swaps the workspace for sample projects built from `examples/`. In memory only — nothing is written, and your own projects come back when it goes off or the page reloads. |
 
 ## Storage keys
 

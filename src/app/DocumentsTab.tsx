@@ -7,6 +7,7 @@ import {
   ConfirmDialog,
   FileIcon,
   Modal,
+  NoteIcon,
   SpinnerIcon,
   TrashIcon,
 } from "@niclaslindstedt/oss-framework/components";
@@ -15,7 +16,6 @@ import { EXTRACT_ACCEPT } from "../generic/extractText/index.ts";
 import { FileDropZone } from "../generic/components/index.ts";
 import { ReviewPanel } from "./ReviewPanel.tsx";
 import { useT } from "./i18n/index.ts";
-import { SAMPLE_NAME, SAMPLE_TEXT } from "./sample.ts";
 import { activeDoc, type Doc, type Project } from "./types.ts";
 import type { AppSettings } from "./useAppSettings.ts";
 import { useDocumentIntake } from "./useDocumentIntake.ts";
@@ -23,8 +23,8 @@ import type { MaskStore } from "./useMaskStore.ts";
 import type { RulesStore } from "./useRules.ts";
 
 // The Documents tab: the project's document list with the intake (drop a
-// file, paste text, load the sample) beside the review of the selected one.
-// Desktop lays the two out side by side; a phone stacks them.
+// file, or paste text) beside the review of the selected one. Desktop lays the
+// two out side by side; a phone stacks them.
 
 type Props = {
   project: Project;
@@ -53,29 +53,12 @@ export function DocumentsTab({ project, store, rules, settings }: Props) {
             active: t("documents.dropActive"),
           }}
         >
-          <div className="flex flex-wrap justify-center gap-x-3 gap-y-1">
-            <button
-              type="button"
-              onClick={() => setPasteOpen(true)}
-              className="cursor-pointer text-accent underline-offset-2 hover:underline"
-            >
+          <Button variant="secondary" onClick={() => setPasteOpen(true)}>
+            <span className="flex items-center gap-1.5">
+              <NoteIcon className="h-4 w-4" />
               {t("documents.pasteText")}
-            </button>
-            <button
-              type="button"
-              onClick={() =>
-                intake.addText({
-                  name: SAMPLE_NAME,
-                  text: SAMPLE_TEXT,
-                  source: "sample",
-                  format: "text",
-                })
-              }
-              className="cursor-pointer text-accent underline-offset-2 hover:underline"
-            >
-              {t("documents.loadSample")}
-            </button>
-          </div>
+            </span>
+          </Button>
         </FileDropZone>
         {intake.busy && (
           <p className="flex items-center gap-2 text-xs text-muted">
@@ -128,9 +111,6 @@ export function DocumentsTab({ project, store, rules, settings }: Props) {
             );
           })}
         </ul>
-        {project.documents.length === 0 && (
-          <p className="text-xs text-muted">{t("documents.empty")}</p>
-        )}
       </aside>
 
       <section className="min-h-0 flex-1 overflow-y-auto">

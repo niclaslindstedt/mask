@@ -120,7 +120,6 @@ export const sv: Catalog = {
     pasteBody: "Text",
     pastePlaceholder: "Klistra in texten som ska maskeras…",
     pasteAdd: "Lägg till dokument",
-    loadSample: "Ladda ett exempelbrev",
     empty: "Inga dokument i projektet. Lägg till ett för att börja maskera.",
     selectOne: "Välj ett dokument till vänster för att granska det.",
     deleteTitle: "Ta bort dokumentet?",
@@ -319,7 +318,11 @@ export const sv: Catalog = {
       },
     },
     developer: {
-      intro: "Bygginformation, uppdateringar och lokal lagring.",
+      intro: "Bygginformation, uppdateringar, testdata och lokal lagring.",
+      testDataTitle: "Testdata",
+      testData: "Ladda testdata",
+      testDataHint:
+        "Byt ut arbetsytan mot exempelprojekt och exempeldokument. Bara i minnet – dina egna projekt rörs inte och kommer tillbaka när du slår av eller laddar om.",
       buildTitle: "Bygge",
       version: "Version",
       commit: "Commit",

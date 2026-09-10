@@ -25,7 +25,8 @@ src/
     ├── types.ts          Project / Doc / Variable / GlobalRules
     ├── detectors/        the Swedish-context detectors + generated dictionaries
     ├── masking.ts        detect → plan → mask / unmask (pure)
-    ├── useMaskStore.ts   projects per workspace, undo/redo, localStorage
+    ├── useMaskStore.ts   projects per workspace, undo/redo, storage backend
+    ├── dev/              the developer test-data backend (lazy, dev-only)
     ├── useRules.ts       the global rules (one key across workspaces)
     ├── useAppSettings.ts, useNamespaces.ts, migrations.ts, log.ts
     ├── i18n/             en + sv catalogs over the framework's createI18n
@@ -81,6 +82,24 @@ filled by `loadDictionaries()`, a lazy import of the ~200 KB generated data
 chunk, so the boot bundle stays small; the review re-runs detection once the
 chunk lands.
 
+## Storage sits behind a backend
+
+`useMaskStore` never touches `localStorage` directly: it reads and writes a
+namespace's document through a `DocBackend` (`load(slug)` / `save(slug, doc)`),
+so a different implementation can take over persistence without the store
+changing. Two exist — `localDocBackend`, the real one (a `mask:doc[:slug]` key
+per workspace), and the in-memory test-data backend under `src/app/dev/`, which
+`App` swaps in while Settings → Developer → **Test data** is on. The slug and
+the backend travel with the document in state, so switching either re-adopts
+the matching document and resets the undo history, and a seeded session never
+writes to disk: turning the toggle off (or reloading) brings the real document
+back untouched.
+
+The test data itself (`dev/testData.ts`) is built from the files in
+`examples/`, minting each project's placeholders exactly as a confirmed review
+would. It lives behind a dynamic `import()` so neither the sample text nor the
+builder reaches a production boot.
+
 ## The renderer is Preact
 
 `preact` is the only renderer dependency. `@preact/preset-vite` compiles JSX
@@ -97,7 +116,8 @@ SVG attributes like `focusable` as `"false"`.
 The entry chunk carries the shell, the stores, the detectors' code, and the
 English catalog. Deferred behind `import()`: the Swedish catalog, the
 dictionaries data chunk (on first review), pdf.js (on the first PDF), the
-Settings modal, and the changelog payload.
+Settings modal, the changelog payload, and the developer test-data chunk (on
+the first time the toggle turns on).
 
 The PDF chunk pulls pdf.js from `pdfjs-dist`'s `legacy/` build: the default
 build reads the `Iterator` global at module scope, so it throws before a page

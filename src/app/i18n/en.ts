@@ -122,7 +122,6 @@ export const en = {
     pasteBody: "Text",
     pastePlaceholder: "Paste the text to mask…",
     pasteAdd: "Add document",
-    loadSample: "Load a sample letter",
     empty: "No documents in this project. Add one to start masking.",
     selectOne: "Pick a document on the left to review it.",
     deleteTitle: "Remove document?",
@@ -320,7 +319,11 @@ export const en = {
       },
     },
     developer: {
-      intro: "Build identity, updates, and local storage.",
+      intro: "Build identity, updates, test data, and local storage.",
+      testDataTitle: "Test data",
+      testData: "Load test data",
+      testDataHint:
+        "Swap this workspace for sample projects and documents. In memory only — your own projects are untouched and come back when you switch it off or reload.",
       buildTitle: "Build",
       version: "Version",
       commit: "Commit",

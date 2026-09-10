@@ -21,6 +21,7 @@ import {
   type PlaceholderStyle,
 } from "../../generic/placeholders.ts";
 import { DETECTOR_IDS, type DetectorId } from "../detectors/index.ts";
+import { useDevSeed } from "../dev/useDevSeed.ts";
 import { descendingLogStore } from "../log.ts";
 import { useT, type TFn } from "../i18n/index.ts";
 import type { AppSettings } from "../useAppSettings.ts";
@@ -160,9 +161,21 @@ export function MaskingTab({
 export function DeveloperTab({ pwa }: { pwa: PwaUpdate }) {
   const t = useT();
   const [confirmClear, setConfirmClear] = useState(false);
+  // The "Test data" toggle applies live and is in-memory only (not a staged
+  // draft setting): flipping it swaps the store's storage backend for the
+  // ephemeral one full of sample projects. See `useDevSeed`.
+  const { testData, setTestData } = useDevSeed();
   return (
     <div>
       <p className="mb-3 text-xs text-muted">{t("settings.developer.intro")}</p>
+      <Section title={t("settings.developer.testDataTitle")}>
+        <ToggleRow
+          label={t("settings.developer.testData")}
+          hint={t("settings.developer.testDataHint")}
+          checked={testData}
+          onChange={setTestData}
+        />
+      </Section>
       <Section title={t("settings.developer.buildTitle")}>
         <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm">
           <dt className="text-muted">{t("settings.developer.version")}</dt>
