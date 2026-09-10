@@ -30,6 +30,10 @@ import {
 } from "@niclaslindstedt/oss-framework/pwa";
 
 import { SafeFloatingPanel } from "../generic/components/index.ts";
+import {
+  PLAIN_TEXT_KEYBOARD_PROPS,
+  primeSoftKeyboard,
+} from "../generic/softKeyboard.ts";
 import { RulesIcon } from "./icons.tsx";
 import { useT } from "./i18n/index.ts";
 import type { Project } from "./types.ts";
@@ -109,6 +113,18 @@ export function SideMenuContent({
     onNavigate();
   }
 
+  // The name row mounts focused, but that focus lands an effect later — too
+  // late for a mobile keyboard, which only opens inside the tap itself.
+  function startCreating() {
+    primeSoftKeyboard();
+    setCreating(true);
+  }
+
+  function startRenaming(id: string) {
+    primeSoftKeyboard();
+    setRenamingId(id);
+  }
+
   function renderProject(project: Project) {
     const active = view === "project" && project.id === data.activeProjectId;
     if (renamingId === project.id) {
@@ -125,13 +141,14 @@ export function SideMenuContent({
           className="gap-3 pr-2 pl-5"
           icon={<FolderIcon className="h-5 w-5" />}
           iconClassName="text-muted"
+          inputProps={PLAIN_TEXT_KEYBOARD_PROPS}
         />
       );
     }
     const renameAction = {
       label: t("menu.renameProject"),
       icon: <PencilIcon className="h-5 w-5" />,
-      onSelect: () => setRenamingId(project.id),
+      onSelect: () => startRenaming(project.id),
     };
     const deleteAction = {
       label: t("menu.deleteProject"),
@@ -185,7 +202,7 @@ export function SideMenuContent({
         </span>
         <button
           type="button"
-          onClick={() => setCreating(true)}
+          onClick={startCreating}
           aria-label={t("menu.newProject")}
           className="-mr-1 flex h-6 w-6 shrink-0 cursor-pointer items-center justify-center rounded text-muted hover:bg-surface-2 hover:text-fg-bright"
         >
@@ -207,6 +224,7 @@ export function SideMenuContent({
             className="gap-3 pr-2 pl-5"
             icon={<FolderIcon className="h-5 w-5" />}
             iconClassName="text-muted"
+            inputProps={PLAIN_TEXT_KEYBOARD_PROPS}
           />
         )}
         {data.projects.map(renderProject)}
@@ -218,10 +236,7 @@ export function SideMenuContent({
       <div className="shrink-0 px-3 pt-2 pb-3">
         <div className="divide-y divide-line overflow-hidden rounded-md border border-line">
           <div className="flex divide-x divide-line">
-            <BarButton
-              label={t("menu.newProject")}
-              onClick={() => setCreating(true)}
-            >
+            <BarButton label={t("menu.newProject")} onClick={startCreating}>
               <PlusIcon className="h-5 w-5" />
             </BarButton>
             <BarButton
