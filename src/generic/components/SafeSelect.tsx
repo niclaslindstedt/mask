@@ -55,8 +55,13 @@ const DEFAULT_PLACEMENT: FloatingPlacement = {
   coordinateSpace: "viewport",
 };
 
+// The trigger lays its value and chevron out in a row, so the row classes are
+// always applied — `triggerClassName` replaces the look, never the layout, or
+// the chevron drops onto a line of its own beneath the label.
+const TRIGGER_LAYOUT_CLASS = "flex cursor-pointer items-center gap-2 text-left";
+
 const DEFAULT_TRIGGER_CLASS =
-  "flex w-full cursor-pointer items-center gap-2 rounded-md border border-line bg-surface-2 px-2.5 py-1.5 text-left text-sm text-fg hover:border-accent focus-visible:border-accent focus-visible:outline-none";
+  "w-full rounded-md border border-line bg-surface-2 px-2.5 py-1.5 text-sm text-fg hover:border-accent focus-visible:border-accent focus-visible:outline-none";
 
 function renderTypeaheadMatch(label: ReactNode, query: string): ReactNode {
   if (typeof label !== "string") return label;
@@ -221,9 +226,9 @@ export function SafeSelect<T extends string | number>({
         disabled={disabled}
         onClick={() => setOpen((v) => !v)}
         onKeyDown={handleTriggerKey}
-        className={`${triggerClassName ?? DEFAULT_TRIGGER_CLASS} ${
-          disabled ? "cursor-not-allowed opacity-60" : ""
-        }`.trim()}
+        className={`${TRIGGER_LAYOUT_CLASS} ${
+          triggerClassName ?? DEFAULT_TRIGGER_CLASS
+        } ${disabled ? "cursor-not-allowed opacity-60" : ""}`.trim()}
       >
         <span className="flex-1 truncate">
           {renderValue ? renderValue(selected) : (selected?.label ?? "")}
