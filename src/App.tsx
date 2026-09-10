@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
-import { Suspense, lazy, useEffect, useState } from "react";
+import { Suspense, lazy, useEffect, useMemo, useState } from "react";
 
 import {
   useApplyTheme,
@@ -29,6 +29,7 @@ import {
 } from "@niclaslindstedt/oss-framework/namespaces";
 
 import { EmptyScreen } from "./app/EmptyScreen.tsx";
+import { seedBackends, useDevSeed } from "./app/dev/useDevSeed.ts";
 import { ProjectScreen } from "./app/ProjectScreen.tsx";
 import { RulesScreen } from "./app/RulesScreen.tsx";
 import { SearchOverlay } from "./app/SearchOverlay.tsx";
@@ -38,7 +39,7 @@ import { APP_LOOK } from "./app/look.ts";
 import { logStore } from "./app/log.ts";
 import { cacheIdForBase } from "./app/pwa.ts";
 import { useAppSettings } from "./app/useAppSettings.ts";
-import { useMaskStore } from "./app/useMaskStore.ts";
+import { localDocBackend, useMaskStore } from "./app/useMaskStore.ts";
 import { useNamespaces } from "./app/useNamespaces.ts";
 import { useRules } from "./app/useRules.ts";
 import { status } from "./output.ts";
@@ -75,7 +76,17 @@ export function App() {
   useApplyTheme(appearance);
 
   const ns = useNamespaces();
-  const store = useMaskStore(ns.activeSlug);
+  // The Developer tab's "Test data" toggle: while it is on, an in-memory
+  // backend full of sample projects replaces the real localStorage one, so a
+  // developer can poke at a populated app without touching their own projects
+  // (see `useDevSeed`).
+  const devSeed = useDevSeed();
+  const backend = useMemo(() => {
+    const dev = seedBackends();
+    if (dev && devSeed.testData) return dev.createTestDataBackend();
+    return localDocBackend;
+  }, [devSeed.testData]);
+  const store = useMaskStore(ns.activeSlug, backend);
   const rules = useRules();
   const { settings, setSettings } = useAppSettings();
   const [view, setView] = useState<View>("project");

@@ -8,10 +8,16 @@ import type { AppData, Doc, Project, Variable } from "./types.ts";
 import * as output from "../output.ts";
 
 // The app's data store — the "store stays in the app" seam. Holds one
-// namespace's document (its projects) in state, persists it to a per-namespace
-// localStorage key, and exposes the edit actions the screens drive over an
-// undo / redo history. Switching namespaces hands this hook a new slug; it
-// adopts that namespace's document and resets the history.
+// namespace's document (its projects) in state, persists it through a
+// `DocBackend`, and exposes the edit actions the screens drive over an undo /
+// redo history. Switching namespaces hands this hook a new slug; it adopts
+// that namespace's document and resets the history.
+//
+// Storage sits behind the backend rather than inside the store, so a different
+// implementation can *take over* persistence without the store changing. Two
+// exist: the real `localDocBackend` (a per-namespace localStorage key) and the
+// developer test-data backend (`src/app/dev/`), swapped in by the Developer
+// tab's "Test data" toggle — the same seam the sibling contacts app uses.
 
 const DOC_KEY_PREFIX = "mask:doc";
 
@@ -26,53 +32,85 @@ export function freshId(prefix: string): string {
   return `${prefix}-${crypto.randomUUID()}`;
 }
 
-function load(slug: string): { data: AppData; readable: boolean } {
-  let raw: string | null;
-  try {
-    raw = localStorage.getItem(docKey(slug));
-  } catch {
-    return { data: emptyDoc(), readable: true };
-  }
-  if (!raw) return { data: emptyDoc(), readable: true };
-  try {
-    return { data: parseDoc(raw), readable: true };
-  } catch (err) {
-    // Bytes exist but can't be read (corrupt, or written by a newer build).
-    // Leave them on disk — the persist guard below never overwrites them.
-    output.error(
-      `Couldn't read the projects saved on this device — ${
-        err instanceof Error ? err.message : String(err)
-      }. The stored copy is left untouched.`,
-    );
-    return { data: emptyDoc(), readable: false };
-  }
-}
+/** A namespace's document as a backend handed it over. `readable` is false
+ *  when stored bytes exist but couldn't be parsed — the store then keeps the
+ *  blank document it was given in memory and never writes over the original. */
+export type LoadedDoc = { data: AppData; readable: boolean };
+
+/** Where a namespace's document is read from and written to. The store drives
+ *  one of these; swapping it swaps storage wholesale. */
+export type DocBackend = {
+  readonly id: "local" | "dev";
+  /** The namespace's document, or an empty one when nothing is stored. */
+  load(slug: string): LoadedDoc;
+  /** Persist a namespace's document. Best effort — it must not throw. */
+  save(slug: string, data: AppData): void;
+};
+
+/** The real backend: one localStorage key per namespace. */
+export const localDocBackend: DocBackend = {
+  id: "local",
+  load(slug) {
+    let raw: string | null;
+    try {
+      raw = localStorage.getItem(docKey(slug));
+    } catch {
+      return { data: emptyDoc(), readable: true };
+    }
+    if (!raw) return { data: emptyDoc(), readable: true };
+    try {
+      return { data: parseDoc(raw), readable: true };
+    } catch (err) {
+      // Bytes exist but can't be read (corrupt, or written by a newer build).
+      // Leave them on disk — the store's persist guard never overwrites them.
+      output.error(
+        `Couldn't read the projects saved on this device — ${
+          err instanceof Error ? err.message : String(err)
+        }. The stored copy is left untouched.`,
+      );
+      return { data: emptyDoc(), readable: false };
+    }
+  },
+  save(slug, data) {
+    try {
+      localStorage.setItem(docKey(slug), serializeDoc(data));
+    } catch {
+      output.error(
+        "Couldn't save to this device's storage (it may be full). Your projects stay in memory for this session.",
+      );
+    }
+  },
+};
 
 export type MaskStore = ReturnType<typeof useMaskStore>;
 
-export function useMaskStore(slug: string) {
-  const [state, setState] = useState(() => ({ slug, ...load(slug) }));
+export function useMaskStore(
+  slug: string,
+  backend: DocBackend = localDocBackend,
+) {
+  // The slug and the backend travel *with* the document in state, so the
+  // persist effect can never write one namespace's data under another's key —
+  // and swapping the backend (the test-data takeover) re-adopts cleanly.
+  const [state, setState] = useState(() => ({
+    slug,
+    backend,
+    ...backend.load(slug),
+  }));
   const past = useRef<AppData[]>([]);
   const future = useRef<AppData[]>([]);
   const [, bump] = useState(0);
 
-  if (state.slug !== slug) {
+  if (state.slug !== slug || state.backend !== backend) {
     past.current = [];
     future.current = [];
-    setState({ slug, ...load(slug) });
+    setState({ slug, backend, ...backend.load(slug) });
   }
 
   const data = state.data;
 
   useEffect(() => {
     if (!state.readable) return;
-    try {
-      localStorage.setItem(docKey(state.slug), serializeDoc(state.data));
-    } catch {
-      output.error(
-        "Couldn't save to this device's storage (it may be full). Your projects stay in memory for this session.",
-      );
-    }
+    state.backend.save(state.slug, state.data);
   }, [state]);
 
   const commit = useCallback((next: (prev: AppData) => AppData) => {

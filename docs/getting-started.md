@@ -15,8 +15,8 @@ The app opens in the **General** workspace with no project yet.
    screen), type a name, press Enter. A project is a case, a matter, a batch
    of documents that share the same people and places.
 2. **Add a document** — drop a PDF or text file onto the intake box, press it
-   to browse, or use **Paste text**. **Load a sample letter** fills in a
-   fictional building-permit letter to try things on.
+   to browse, or use **Paste text**. The [`examples/`](../examples/) folder has
+   fictional Swedish documents to try things on.
 3. **Review** — every value the detectors found is listed with a checkbox, its
    kind, and the placeholder it will get. Untick a false positive, change a
    kind, or add a value the detectors missed — type it in, or select it in the

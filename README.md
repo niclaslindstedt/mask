@@ -63,8 +63,9 @@ npm run build      # production build into dist/
 npm run preview    # serve the production build locally
 ```
 
-Open the app, create a project, press **Load a sample letter**, review what
-was found, press **Confirm and mask**, and copy the output.
+Open the app, create a project, drop one of the files from [`examples/`](examples/)
+onto the intake (or press **Paste text**), review what was found, press
+**Confirm and mask**, and copy the output.
 
 ## Usage
 
@@ -118,9 +119,10 @@ settings are listed in [docs/configuration.md](docs/configuration.md):
 
 ## Examples
 
-See [`examples/`](examples/) for the sample letter the app's **Load a sample
-letter** button uses — a fictional Swedish document with every kind of value
-the detectors know.
+See [`examples/`](examples/) for the sample documents — fictional Swedish
+letters and case notes carrying every kind of value the detectors know. Drop
+one onto a project, or switch on **Test data** in Settings → Developer to open
+the app on sample projects already holding them.
 
 ## Troubleshooting
 
