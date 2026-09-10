@@ -15,6 +15,7 @@ import {
 } from "@niclaslindstedt/oss-framework/namespaces";
 import { useLocalStorageState } from "@niclaslindstedt/oss-framework/hooks";
 
+import { workspaceKindsKey } from "./useCustomKinds.ts";
 import { docKey } from "./useMaskStore.ts";
 
 // The app's namespace registry — the "store stays in the app" seam for the
@@ -86,13 +87,15 @@ export function useNamespaces() {
   );
 
   // Removing a namespace drops it from the registry *and* deletes its document
-  // (the framework only edits the list — destroying the data is the app's
-  // job). If it was active, fall back to the default.
+  // and its own placeholder types (the framework only edits the list —
+  // destroying the data is the app's job). If it was active, fall back to the
+  // default.
   const remove = useCallback(
     (slug: string) => {
       setList((cur) => removeNamespace(cur, slug));
       try {
         localStorage.removeItem(docKey(slug));
+        localStorage.removeItem(workspaceKindsKey(slug));
       } catch {
         // Storage unavailable — the registry edit above still stands.
       }

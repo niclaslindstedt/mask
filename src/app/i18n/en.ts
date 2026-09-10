@@ -233,6 +233,10 @@ export const en = {
     patternMatches: "{n} matches",
   },
   kinds: {
+    createOption: "Custom type…",
+    createPlaceholder: "e.g. Judge",
+    createLabel: "Name this type",
+    createConfirm: "Use this type",
     name: "Name",
     street: "Street address",
     city: "City",
@@ -292,6 +296,27 @@ export const en = {
       styleLabel: "Default style for new projects",
       styleHint:
         "A project can override this in its Placeholders tab. Kind-based styles keep the LLM aware of what each placeholder stands for.",
+      typesTitle: "Placeholder types",
+      typesHint:
+        "Your own kinds of value, on top of the eight the detectors know. A kind-based style spells the type into the placeholder, so a judge becomes JUDGE1 rather than NAME1 and the LLM keeps the context.",
+      typesEmpty: "No placeholder types yet.",
+      typeLabel: "Type name",
+      typePlaceholder: "e.g. Judge",
+      typeAdd: "Add type",
+      typePreview: "Placeholders: {examples}",
+      typeRemove: "Remove the type {label}",
+      typeScope: "Where {label} applies",
+      typeProblem: {
+        empty: "Give the type a name.",
+        unusable: "A type name needs a letter or a digit.",
+        reserved: "That name belongs to a built-in kind.",
+        duplicate: "That type already exists.",
+      },
+      scopeLabel: "New types apply to",
+      scopeGlobal: "Every workspace",
+      scopeWorkspace: "This workspace",
+      scopeHint:
+        "A workspace-scoped type belongs to “{name}” alone and is gone when you switch workspaces. Move a type between the two with the picker on its row.",
       detectorsTitle: "Detectors",
       detectorsHint:
         "Switch off a detector that produces too many false positives for your documents.",

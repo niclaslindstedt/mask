@@ -8,17 +8,28 @@ import {
   TrashIcon,
 } from "@niclaslindstedt/oss-framework/components";
 
-import { SafeSelect, StringListEditor } from "../generic/components/index.ts";
+import {
+  SelectOrCreate,
+  StringListEditor,
+} from "../generic/components/index.ts";
 import { scanRules } from "../generic/textScan.ts";
+import { kindLabelProblem, normalizeKindLabel } from "./customKinds.ts";
 import { kindLabel, kindOptions } from "./kinds.ts";
 import { useT } from "./i18n/index.ts";
 import { compilePattern } from "./masking.ts";
+import type { CustomKindsStore } from "./useCustomKinds.ts";
 import type { RulesStore } from "./useRules.ts";
 
 // The global rules: the always-mask and never-mask lists and the custom
 // regex patterns. These carry across every workspace and project.
 
-export function RulesScreen({ rules }: { rules: RulesStore }) {
+export function RulesScreen({
+  rules,
+  kinds,
+}: {
+  rules: RulesStore;
+  kinds: CustomKindsStore;
+}) {
   const t = useT();
   const [alwaysKind, setAlwaysKind] = useState("name");
   const [label, setLabel] = useState("");
@@ -26,10 +37,19 @@ export function RulesScreen({ rules }: { rules: RulesStore }) {
   const [flags, setFlags] = useState("");
   const [patternKind, setPatternKind] = useState("custom");
   const [sample, setSample] = useState("");
-  const kinds = kindOptions(t, [
+  const kindChoices = kindOptions(t, [
+    ...kinds.all.map((k) => k.label),
     ...rules.rules.always.map((e) => e.kind),
     ...rules.rules.patterns.map((p) => p.kind),
   ]);
+  const createLabels = {
+    create: t("kinds.createOption"),
+    createPlaceholder: t("kinds.createPlaceholder"),
+    createLabel: t("kinds.createLabel"),
+    confirm: t("kinds.createConfirm"),
+    cancel: t("common.cancel"),
+  };
+  const acceptKind = (value: string) => kindLabelProblem(value) === null;
   const compiled = useMemo(
     () => (pattern ? compilePattern(pattern, flags) : null),
     [pattern, flags],
@@ -70,10 +90,13 @@ export function RulesScreen({ rules }: { rules: RulesStore }) {
               empty: t("rules.alwaysEmpty"),
             }}
             aside={
-              <SafeSelect<string>
+              <SelectOrCreate
                 value={alwaysKind}
-                options={kinds}
+                options={kindChoices}
                 onChange={setAlwaysKind}
+                labels={createLabels}
+                accept={acceptKind}
+                normalize={normalizeKindLabel}
                 ariaLabel={t("review.kindPickerLabel")}
               />
             }
@@ -177,10 +200,13 @@ export function RulesScreen({ rules }: { rules: RulesStore }) {
             <p className="text-xs text-danger">{t("rules.patternInvalid")}</p>
           )}
           <div className="flex flex-wrap items-center gap-2">
-            <SafeSelect<string>
+            <SelectOrCreate
               value={patternKind}
-              options={kinds}
+              options={kindChoices}
               onChange={setPatternKind}
+              labels={createLabels}
+              accept={acceptKind}
+              normalize={normalizeKindLabel}
               ariaLabel={t("rules.patternKind")}
             />
             <Button

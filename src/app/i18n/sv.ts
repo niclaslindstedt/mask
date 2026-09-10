@@ -232,6 +232,10 @@ export const sv: Catalog = {
     patternMatches: "{n} träffar",
   },
   kinds: {
+    createOption: "Egen typ…",
+    createPlaceholder: "t.ex. Domare",
+    createLabel: "Namnge typen",
+    createConfirm: "Använd typen",
     name: "Namn",
     street: "Gatuadress",
     city: "Ort",
@@ -291,6 +295,27 @@ export const sv: Catalog = {
       styleLabel: "Standardstil för nya projekt",
       styleHint:
         "Ett projekt kan välja en annan stil under fliken Platshållare. Typbaserade stilar låter språkmodellen förstå vad varje platshållare står för.",
+      typesTitle: "Platshållartyper",
+      typesHint:
+        "Egna typer av värden, utöver de åtta detektorerna känner till. En typbaserad stil skriver in typen i platshållaren, så att en domare blir DOMARE1 i stället för NAMN1 och språkmodellen behåller sammanhanget.",
+      typesEmpty: "Inga platshållartyper än.",
+      typeLabel: "Typens namn",
+      typePlaceholder: "t.ex. Domare",
+      typeAdd: "Lägg till typ",
+      typePreview: "Platshållare: {examples}",
+      typeRemove: "Ta bort typen {label}",
+      typeScope: "Var {label} gäller",
+      typeProblem: {
+        empty: "Ge typen ett namn.",
+        unusable: "Ett typnamn behöver en bokstav eller en siffra.",
+        reserved: "Det namnet tillhör en inbyggd typ.",
+        duplicate: "Den typen finns redan.",
+      },
+      scopeLabel: "Nya typer gäller för",
+      scopeGlobal: "Alla arbetsytor",
+      scopeWorkspace: "Denna arbetsyta",
+      scopeHint:
+        "En arbetsytebunden typ hör bara till ”{name}” och följer inte med när du byter arbetsyta. Flytta en typ mellan de två med väljaren på dess rad.",
       detectorsTitle: "Detektorer",
       detectorsHint:
         "Stäng av en detektor som ger för många felträffar i dina dokument.",

@@ -36,6 +36,23 @@ Untick it in the review (the project remembers the rejection), or add it to
 **Rules → Never mask** to stop it across every project. A whole detector that
 misfires on your documents can be switched off in Settings → Masking.
 
+## A placeholder type I added is gone
+
+A placeholder type is either global or bound to one workspace, and a
+workspace-bound one is only offered in the workspace it was added in — check
+which workspace you are in, and what **New types apply to** was set to when you
+added it. The picker on a type's row in Settings → Masking → **Placeholder
+types** moves it between the two.
+
+## A value still masks to NAME1 after I re-typed it
+
+Changing a placeholder's type renames it only when the app was the one that
+named it; a placeholder you typed by hand keeps the name you gave it. The
+letter and `$1` styles ignore the type altogether, so `AAA` stays `AAA`
+whatever it stands for — switch the project to a kind-based style in its
+**Placeholders** tab to see the type in the placeholder. A document masked
+before the change keeps its old text until you confirm the review again.
+
 ## A placeholder in the answer was not restored
 
 Restore only knows the placeholders of the **current project** — switch to the

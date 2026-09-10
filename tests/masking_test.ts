@@ -13,6 +13,7 @@ import {
   compilePattern,
   detectCandidates,
   maskText,
+  retokenForKind,
   tokensPresent,
   unmaskText,
   type DetectContext,
@@ -185,5 +186,99 @@ describe("buildMaskPlan / maskText / unmaskText", () => {
       "1",
       "2",
     ]);
+  });
+});
+
+describe("a custom kind", () => {
+  it("mints a placeholder that spells the label out", () => {
+    const plan = buildMaskPlan(
+      "Domaren Karl Ek dömde. Karl Ek var tydlig.",
+      [
+        { value: "Karl Ek", kind: "Judge", include: true },
+        { value: "Domaren", kind: "custom", include: false },
+      ],
+      [],
+      "kindNumber",
+      mintId,
+      () => "2026-01-01T00:00:00.000Z",
+    );
+    expect(plan.added.map((v) => [v.value, v.kind, v.token])).toEqual([
+      ["Karl Ek", "Judge", "JUDGE1"],
+    ]);
+    expect(plan.masked).toBe("Domaren JUDGE1 dömde. JUDGE1 var tydlig.");
+    expect(unmaskText(plan.masked, plan.variables)).toBe(
+      "Domaren Karl Ek dömde. Karl Ek var tydlig.",
+    );
+  });
+
+  it("counts per label, so two custom types never share a number", () => {
+    const plan = buildMaskPlan(
+      "Karl Ek mot Ida Ask.",
+      [
+        { value: "Karl Ek", kind: "Judge", include: true },
+        { value: "Ida Ask", kind: "Plaintiff", include: true },
+      ],
+      [],
+      "kindNumber",
+      mintId,
+    );
+    expect(plan.added.map((v) => v.token)).toEqual(["JUDGE1", "PLAINTIFF1"]);
+  });
+});
+
+describe("retokenForKind", () => {
+  const vars = (): Variable[] => [
+    {
+      id: "1",
+      token: "NAME1",
+      value: "Karl Ek",
+      kind: "name",
+      createdAt: "",
+    },
+    { id: "2", token: "NAME2", value: "Ida Ask", kind: "name", createdAt: "" },
+  ];
+
+  it("renames a placeholder the app minted", () => {
+    const next = retokenForKind(vars(), "1", "Judge", "kindNumber");
+    expect(next[0]).toMatchObject({ kind: "Judge", token: "JUDGE1" });
+    // The other placeholder is untouched — including its number.
+    expect(next[1]).toMatchObject({ kind: "name", token: "NAME2" });
+  });
+
+  it("leaves a placeholder the user typed alone", () => {
+    const list = vars();
+    list[0] = { ...list[0]!, token: "DOMAREN" };
+    const next = retokenForKind(list, "1", "Judge", "kindNumber");
+    expect(next[0]).toMatchObject({ kind: "Judge", token: "DOMAREN" });
+  });
+
+  it("keeps the placeholder in a style that ignores the kind", () => {
+    const list: Variable[] = [
+      { id: "1", token: "AAA", value: "Karl Ek", kind: "name", createdAt: "" },
+    ];
+    const next = retokenForKind(list, "1", "Judge", "upperLetters");
+    expect(next[0]).toMatchObject({ kind: "Judge", token: "AAA" });
+  });
+
+  it("never takes a placeholder another value already has", () => {
+    const list: Variable[] = [
+      ...vars(),
+      {
+        id: "3",
+        token: "JUDGE1",
+        value: "Bo Alm",
+        kind: "Judge",
+        createdAt: "",
+      },
+    ];
+    const next = retokenForKind(list, "1", "Judge", "kindNumber");
+    expect(next[0]!.token).toBe("JUDGE2");
+  });
+
+  it("is a no-op for an unknown id or an unchanged kind", () => {
+    expect(retokenForKind(vars(), "nope", "Judge", "kindNumber")).toEqual(
+      vars(),
+    );
+    expect(retokenForKind(vars(), "1", "name", "kindNumber")).toEqual(vars());
   });
 });

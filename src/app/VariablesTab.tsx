@@ -7,35 +7,54 @@ import {
   TrashIcon,
 } from "@niclaslindstedt/oss-framework/components";
 
-import { SafeSelect } from "../generic/components/index.ts";
+import { SafeSelect, SelectOrCreate } from "../generic/components/index.ts";
 import {
   mintPlaceholder,
   type PlaceholderStyle,
 } from "../generic/placeholders.ts";
+import { kindLabelProblem, normalizeKindLabel } from "./customKinds.ts";
 import { kindClass, kindLabel, kindOptions } from "./kinds.ts";
 import { useT } from "./i18n/index.ts";
 import { projectStyle } from "./masking.ts";
 import { styleOptions } from "./settings/tabs.tsx";
 import type { Project } from "./types.ts";
 import type { AppSettings } from "./useAppSettings.ts";
+import type { CustomKindsStore } from "./useCustomKinds.ts";
 import type { MaskStore } from "./useMaskStore.ts";
 
 // The Placeholders tab: the project's variables (placeholder ↔ value ↔ kind),
 // the placeholder style for this project, a form to add one by hand, and the
 // values rejected during review.
+//
+// Re-typing a placeholder renames it when the app was the one that named it —
+// see `retokenForKind`; a placeholder typed by hand keeps the name it was
+// given.
 
-type Props = { project: Project; store: MaskStore; settings: AppSettings };
+type Props = {
+  project: Project;
+  store: MaskStore;
+  settings: AppSettings;
+  kinds: CustomKindsStore;
+};
 
-export function VariablesTab({ project, store, settings }: Props) {
+export function VariablesTab({ project, store, settings, kinds }: Props) {
   const t = useT();
   const style = projectStyle(project, settings.placeholderStyle);
   const [value, setValue] = useState("");
   const [token, setToken] = useState("");
   const [kind, setKind] = useState("name");
-  const kinds = kindOptions(
-    t,
-    project.variables.map((v) => v.kind),
-  );
+  const kindChoices = kindOptions(t, [
+    ...kinds.all.map((k) => k.label),
+    ...project.variables.map((v) => v.kind),
+  ]);
+  const createLabels = {
+    create: t("kinds.createOption"),
+    createPlaceholder: t("kinds.createPlaceholder"),
+    createLabel: t("kinds.createLabel"),
+    confirm: t("kinds.createConfirm"),
+    cancel: t("common.cancel"),
+  };
+  const acceptKind = (v: string) => kindLabelProblem(v) === null;
 
   function add() {
     const v = value.trim();
@@ -96,12 +115,15 @@ export function VariablesTab({ project, store, settings }: Props) {
                   {v.value}
                 </span>
                 <span className="w-40 shrink-0">
-                  <SafeSelect<string>
+                  <SelectOrCreate
                     value={v.kind}
-                    options={kinds}
+                    options={kindChoices}
                     onChange={(k) =>
-                      store.updateVariable(project.id, v.id, { kind: k })
+                      store.setVariableKind(project.id, v.id, k, style)
                     }
+                    labels={createLabels}
+                    accept={acceptKind}
+                    normalize={normalizeKindLabel}
                     ariaLabel={t("variables.kind")}
                     triggerClassName="w-full rounded border border-line bg-surface px-2 py-1 text-left text-xs text-fg"
                   />
@@ -158,10 +180,13 @@ export function VariablesTab({ project, store, settings }: Props) {
             onInput={(e) => setToken(e.currentTarget.value)}
             className="w-40 rounded-md border border-line bg-surface px-3 py-1.5 text-sm text-fg-bright placeholder:text-muted focus:border-accent focus:outline-none"
           />
-          <SafeSelect<string>
+          <SelectOrCreate
             value={kind}
-            options={kinds}
+            options={kindChoices}
             onChange={setKind}
+            labels={createLabels}
+            accept={acceptKind}
+            normalize={normalizeKindLabel}
             ariaLabel={t("variables.kind")}
           />
           <Button onClick={add} disabled={!value.trim()}>

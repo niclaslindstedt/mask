@@ -6,6 +6,11 @@ export {
   type SafeFloatingPanelProps,
 } from "./SafeFloatingPanel.tsx";
 export { SafeSelect, type SelectOption } from "./SafeSelect.tsx";
+export {
+  CREATE_OPTION,
+  SelectOrCreate,
+  type SelectOrCreateLabels,
+} from "./SelectOrCreate.tsx";
 export { SpanText, type HighlightSpan } from "./SpanText.tsx";
 export {
   StringListEditor,

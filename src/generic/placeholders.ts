@@ -43,10 +43,11 @@ function letters(index: number, width = 3): string {
   return out.padStart(width, "A");
 }
 
-// A kind label reduced to something safe inside a placeholder: letters and
-// digits only. An empty kind falls back to `X` so the placeholder is never
-// just a number.
-function kindSlug(kind: string): string {
+/** A kind label reduced to something safe inside a placeholder: letters and
+ *  digits only. An empty kind falls back to `X` so the placeholder is never
+ *  just a number. Exported so a caller can tell, before it stores a label,
+ *  what the placeholders made from it will read as. */
+export function kindSlug(kind: string): string {
   const slug = kind.replace(/[^\p{L}\p{N}]+/gu, "");
   return slug.length > 0 ? slug : "X";
 }

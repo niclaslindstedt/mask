@@ -22,6 +22,8 @@ import {
 } from "../../generic/placeholders.ts";
 import { DETECTOR_IDS, type DetectorId } from "../detectors/index.ts";
 import { useDevSeed } from "../dev/useDevSeed.ts";
+import type { CustomKindsStore } from "../useCustomKinds.ts";
+import { PlaceholderTypesSection } from "./kinds.tsx";
 import { descendingLogStore } from "../log.ts";
 import { useT, type TFn } from "../i18n/index.ts";
 import type { AppSettings } from "../useAppSettings.ts";
@@ -112,9 +114,13 @@ export function styleOptions(t: TFn) {
 export function MaskingTab({
   settings,
   update,
+  kinds,
+  workspaceName,
 }: {
   settings: AppSettings;
   update: Update;
+  kinds: CustomKindsStore;
+  workspaceName: string;
 }) {
   const t = useT();
   return (
@@ -136,6 +142,13 @@ export function MaskingTab({
           </p>
         </div>
       </Section>
+      <PlaceholderTypesSection
+        kinds={kinds}
+        scope={settings.kindScope}
+        onScopeChange={(next) => update("kindScope", next)}
+        style={settings.placeholderStyle}
+        workspaceName={workspaceName}
+      />
       <Section title={t("settings.masking.detectorsTitle")}>
         <p className="text-xs text-muted">
           {t("settings.masking.detectorsHint")}

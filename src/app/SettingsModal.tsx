@@ -30,6 +30,7 @@ import { SafeFloatingPanel } from "../generic/components/index.ts";
 import { useT } from "./i18n/index.ts";
 import { APP_LOOK } from "./look.ts";
 import { DEFAULT_SETTINGS, type AppSettings } from "./useAppSettings.ts";
+import type { CustomKindsStore } from "./useCustomKinds.ts";
 import {
   DeveloperTab,
   GeneralTab,
@@ -62,6 +63,10 @@ type Props = {
   setAppearance: (next: ThemeAppearance) => void;
   settings: AppSettings;
   commitSettings: (next: AppSettings) => void;
+  kinds: CustomKindsStore;
+  /** The active workspace's name — the Masking tab says which one a
+   *  workspace-scoped placeholder type belongs to. */
+  workspaceName: string;
   pwa: PwaUpdate;
 };
 
@@ -72,6 +77,8 @@ export function SettingsModal({
   setAppearance,
   settings,
   commitSettings,
+  kinds,
+  workspaceName,
   pwa,
 }: Props) {
   const t = useT();
@@ -246,7 +253,12 @@ export function SettingsModal({
             />
           )}
           {activeTab === "masking" && (
-            <MaskingTab settings={draft} update={update} />
+            <MaskingTab
+              settings={draft}
+              update={update}
+              kinds={kinds}
+              workspaceName={workspaceName}
+            />
           )}
           {activeTab === "developer" && <DeveloperTab pwa={pwa} />}
           {activeTab === "logs" && <LogsTab />}

@@ -18,6 +18,7 @@ import { ReviewPanel } from "./ReviewPanel.tsx";
 import { useT } from "./i18n/index.ts";
 import { activeDoc, type Doc, type Project } from "./types.ts";
 import type { AppSettings } from "./useAppSettings.ts";
+import type { CustomKindsStore } from "./useCustomKinds.ts";
 import { useDocumentIntake } from "./useDocumentIntake.ts";
 import type { MaskStore } from "./useMaskStore.ts";
 import type { RulesStore } from "./useRules.ts";
@@ -31,9 +32,16 @@ type Props = {
   store: MaskStore;
   rules: RulesStore;
   settings: AppSettings;
+  kinds: CustomKindsStore;
 };
 
-export function DocumentsTab({ project, store, rules, settings }: Props) {
+export function DocumentsTab({
+  project,
+  store,
+  rules,
+  settings,
+  kinds,
+}: Props) {
   const t = useT();
   const intake = useDocumentIntake(store, project.id);
   const [pasteOpen, setPasteOpen] = useState(false);
@@ -122,6 +130,7 @@ export function DocumentsTab({ project, store, rules, settings }: Props) {
             store={store}
             rules={rules}
             settings={settings}
+            kinds={kinds}
           />
         ) : (
           <p className="p-6 text-sm text-muted">
