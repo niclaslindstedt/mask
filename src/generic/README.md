@@ -15,6 +15,7 @@ here; nothing here may import from `src/app/`.
 | [`textScan.ts`](textScan.ts)                    | Regex + literal scanning over a text into typed spans, overlap resolution, and non-overlapping span substitution (both directions). |
 | [`checkDigit.ts`](checkDigit.ts)                | Luhn (mod 10) check-digit validation.                                                                                               |
 | [`extractText/`](extractText)                   | File → plain text: text-like files read directly, PDFs through a lazily-loaded `pdfjs-dist` chunk.                                  |
+| [`softKeyboard.ts`](softKeyboard.ts)            | Open a touch device's keyboard for a field that mounts a tick later, plus the soft-keyboard hints a short text field wants.         |
 | [`components/FileDropZone.tsx`](components)     | Drop target + browse button over the framework's `useFileDrop`.                                                                     |
 | [`components/StringListEditor.tsx`](components) | Add / remove a list of strings.                                                                                                     |
 | [`components/SpanText.tsx`](components)         | Render a text with typed spans highlighted (and clickable).                                                                         |

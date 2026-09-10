@@ -7,6 +7,11 @@ import {
   FolderIcon,
 } from "@niclaslindstedt/oss-framework/components";
 
+import {
+  PLAIN_TEXT_KEYBOARD_PROPS,
+  primeSoftKeyboard,
+} from "../generic/softKeyboard.ts";
+
 import { MaskIcon } from "./icons.tsx";
 import { useT } from "./i18n/index.ts";
 
@@ -43,10 +48,17 @@ export function EmptyScreen({
               className="gap-3 px-3"
               icon={<FolderIcon className="h-5 w-5" />}
               iconClassName="text-muted"
+              inputProps={PLAIN_TEXT_KEYBOARD_PROPS}
             />
           </div>
         ) : (
-          <Button variant="primary" onClick={() => setCreating(true)}>
+          <Button
+            variant="primary"
+            onClick={() => {
+              primeSoftKeyboard();
+              setCreating(true);
+            }}
+          >
             {t("empty.createProject")}
           </Button>
         )}
