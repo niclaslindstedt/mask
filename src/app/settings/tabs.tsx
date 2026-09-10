@@ -6,7 +6,6 @@ import {
   ConfirmDialog,
   SegmentedControl,
   Section,
-  SelectPicker,
   ToggleRow,
 } from "@niclaslindstedt/oss-framework/components";
 import { LogViewer } from "@niclaslindstedt/oss-framework/logging";
@@ -15,6 +14,7 @@ import {
   type PwaUpdate,
 } from "@niclaslindstedt/oss-framework/pwa";
 
+import { SafeSelect } from "../../generic/components/index.ts";
 import {
   PLACEHOLDER_STYLES,
   placeholderExamples,
@@ -124,7 +124,7 @@ export function MaskingTab({
           <span className="text-sm text-fg-bright">
             {t("settings.masking.styleLabel")}
           </span>
-          <SelectPicker<PlaceholderStyle>
+          <SafeSelect<PlaceholderStyle>
             value={settings.placeholderStyle}
             options={styleOptions(t)}
             onChange={(next) => update("placeholderStyle", next)}

@@ -4,10 +4,10 @@ import { useState } from "react";
 import {
   Button,
   CopyButton,
-  SelectPicker,
   TrashIcon,
 } from "@niclaslindstedt/oss-framework/components";
 
+import { SafeSelect } from "../generic/components/index.ts";
 import {
   mintPlaceholder,
   type PlaceholderStyle,
@@ -96,7 +96,7 @@ export function VariablesTab({ project, store, settings }: Props) {
                   {v.value}
                 </span>
                 <span className="w-40 shrink-0">
-                  <SelectPicker<string>
+                  <SafeSelect<string>
                     value={v.kind}
                     options={kinds}
                     onChange={(k) =>
@@ -124,7 +124,7 @@ export function VariablesTab({ project, store, settings }: Props) {
         <h3 className="mb-2 text-xs font-bold tracking-wide text-muted uppercase">
           {t("project.styleLabel")}
         </h3>
-        <SelectPicker<PlaceholderStyle | "default">
+        <SafeSelect<PlaceholderStyle | "default">
           value={project.style ?? "default"}
           options={styleChoices}
           onChange={(next) =>
@@ -158,7 +158,7 @@ export function VariablesTab({ project, store, settings }: Props) {
             onInput={(e) => setToken(e.currentTarget.value)}
             className="w-40 rounded-md border border-line bg-surface px-3 py-1.5 text-sm text-fg-bright placeholder:text-muted focus:border-accent focus:outline-none"
           />
-          <SelectPicker<string>
+          <SafeSelect<string>
             value={kind}
             options={kinds}
             onChange={setKind}

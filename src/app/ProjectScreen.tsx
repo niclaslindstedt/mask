@@ -54,7 +54,12 @@ export function ProjectScreen({ project, store, rules, settings }: Props) {
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <header className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-b border-line bg-surface px-4 py-3 pt-[calc(0.75rem+env(safe-area-inset-top))]">
+      {/* `data-floating-edge` marks pinned top chrome: dropdowns that flip
+          above their trigger stop below it instead of covering it. */}
+      <header
+        data-floating-edge="top"
+        className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-b border-line bg-surface px-4 py-3 pt-[calc(0.75rem+env(safe-area-inset-top))]"
+      >
         <h1 className="min-w-0 flex-1 truncate text-base font-bold text-fg-bright">
           {project.name}
         </h1>
