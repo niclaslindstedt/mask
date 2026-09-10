@@ -40,6 +40,8 @@ export const sv: Catalog = {
     undo: "Ångra",
     redo: "Gör om",
     search: "Sök",
+    collapseFooter: "Fäll ihop sidfot",
+    expandFooter: "Fäll ut sidfot",
     about: "Om",
     whatsNew: "Nyheter",
     source: "Källkod",
