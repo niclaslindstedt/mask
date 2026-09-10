@@ -21,10 +21,12 @@ import {
   UndoIcon,
   type FloatingPlacement,
 } from "@niclaslindstedt/oss-framework/components";
+import { useLocalStorageState } from "@niclaslindstedt/oss-framework/hooks";
 import {
   NamespaceSwitcher,
   type Namespace,
 } from "@niclaslindstedt/oss-framework/namespaces";
+import { CollapseRail } from "@niclaslindstedt/oss-framework/sidebar";
 import {
   CheckForUpdatesItem,
   type PwaUpdateCheckResult,
@@ -103,6 +105,14 @@ export function SideMenuContent({
   const [deleting, setDeleting] = useState<Project | null>(null);
   const [aboutOpen, setAboutOpen] = useState(false);
   const aboutRef = useRef<HTMLButtonElement>(null);
+  // The footer (Donate / About / update / Settings) can be folded away with
+  // the thin chevron rail above it, freeing the space for the project list.
+  // The choice is remembered across reloads and applies on every viewport —
+  // the phone drawer offers the same collapse control.
+  const [footerCollapsed, setFooterCollapsed] = useLocalStorageState(
+    "mask:footer-collapsed",
+    false,
+  );
 
   function pick(id: string) {
     setActiveProject(id);
@@ -161,7 +171,13 @@ export function SideMenuContent({
   }
 
   return (
-    <div className="flex h-full flex-col select-none">
+    // The framework panel reserves a bottom safe-area inset as padding so its
+    // last child clears the home indicator — but this PWA is embedded above the
+    // safe area, so that inset is just dead space below whatever sits last (the
+    // collapse rail when folded, the footer when not). We grow past the panel's
+    // content box to reclaim that inset and hand it to the scrolling list, then
+    // let the footer / rail carry their own (inset-free) bottom breathing room.
+    <div className="flex shrink-0 flex-col select-none [height:calc(100%+max(env(safe-area-inset-bottom),calc(1.25rem-var(--density-row-py))))]">
       <NamespaceSwitcher
         namespaces={namespaces}
         activeNamespace={activeNamespace.slug}
@@ -254,48 +270,67 @@ export function SideMenuContent({
         </div>
       </div>
 
-      <div className="flex shrink-0 flex-col border-t border-line [padding-top:calc(1.25rem-var(--density-row-py))]">
-        {DONATE_URL && (
-          <FooterLink
-            icon={<HeartIcon className="h-5 w-5 text-danger" />}
-            href={DONATE_URL}
-            external
+      {/* Footer collapse rail. A thin, full-width chevron button seated just
+          above the footer that folds it away (and back), so the project list
+          can claim the freed vertical space. Offered on every viewport,
+          including the phone drawer. */}
+      <CollapseRail
+        collapsed={footerCollapsed}
+        label={
+          footerCollapsed ? t("menu.expandFooter") : t("menu.collapseFooter")
+        }
+        onClick={() => setFooterCollapsed((v) => !v)}
+      />
+
+      {/* Footer — fixed, and foldable away via the rail above. The PWA paints
+          fullscreen (no bottom safe-area inset lifting the panel), so Settings
+          would otherwise sit right on the screen's edge: the bottom breathing
+          room carries an extra 10px to keep the last row a comfortable reach
+          for the thumb. */}
+      {!footerCollapsed && (
+        <div className="flex shrink-0 flex-col border-t border-line [padding-top:calc(1.25rem-var(--density-row-py))] [padding-bottom:calc(1.25rem-var(--density-row-py)+10px)]">
+          {DONATE_URL && (
+            <FooterLink
+              icon={<HeartIcon className="h-5 w-5 text-danger" />}
+              href={DONATE_URL}
+              external
+            >
+              Donate
+            </FooterLink>
+          )}
+          <button
+            ref={aboutRef}
+            type="button"
+            aria-haspopup="menu"
+            aria-expanded={aboutOpen}
+            onClick={() => setAboutOpen((v) => !v)}
+            className="flex w-full cursor-pointer items-center gap-3 px-5 py-[var(--density-row-py)] text-left text-sm text-fg hover:bg-surface-2 hover:text-fg-bright"
           >
-            Donate
-          </FooterLink>
-        )}
-        <button
-          ref={aboutRef}
-          type="button"
-          aria-haspopup="menu"
-          aria-expanded={aboutOpen}
-          onClick={() => setAboutOpen((v) => !v)}
-          className="flex w-full cursor-pointer items-center gap-3 px-5 py-[var(--density-row-py)] text-left text-sm text-fg hover:bg-surface-2 hover:text-fg-bright"
-        >
-          <span className="text-muted">
-            <HelpCircleIcon className="h-5 w-5" />
-          </span>
-          <span className="flex-1">{t("menu.about")}</span>
-        </button>
-        <CheckForUpdatesItem
-          checking={checkingUpdate}
-          updateAvailable={updateAvailable}
-          onCheck={onCheckUpdate}
-          labels={{
-            idle: t("menu.checkUpdates"),
-            checking: t("menu.checkingUpdates"),
-            upToDate: t("menu.upToDate"),
-            updateAvailable: t("menu.updateAvailable"),
-            unavailable: t("menu.updatesUnavailable"),
-          }}
-        />
-        <FooterRow
-          icon={<CogIcon className="h-5 w-5" />}
-          onClick={onOpenSettings}
-        >
-          {t("menu.settings")}
-        </FooterRow>
-      </div>
+            <span className="text-muted">
+              <HelpCircleIcon className="h-5 w-5" />
+            </span>
+            <span className="flex-1">{t("menu.about")}</span>
+          </button>
+          <CheckForUpdatesItem
+            checking={checkingUpdate}
+            updateAvailable={updateAvailable}
+            onCheck={onCheckUpdate}
+            labels={{
+              idle: t("menu.checkUpdates"),
+              checking: t("menu.checkingUpdates"),
+              upToDate: t("menu.upToDate"),
+              updateAvailable: t("menu.updateAvailable"),
+              unavailable: t("menu.updatesUnavailable"),
+            }}
+          />
+          <FooterRow
+            icon={<CogIcon className="h-5 w-5" />}
+            onClick={onOpenSettings}
+          >
+            {t("menu.settings")}
+          </FooterRow>
+        </div>
+      )}
 
       <FloatingPanel
         open={aboutOpen}

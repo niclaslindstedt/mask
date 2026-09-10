@@ -42,6 +42,8 @@ export const en = {
     undo: "Undo",
     redo: "Redo",
     search: "Search",
+    collapseFooter: "Collapse footer",
+    expandFooter: "Expand footer",
     about: "About",
     whatsNew: "What’s new",
     source: "Source code",
