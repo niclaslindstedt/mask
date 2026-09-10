@@ -5,7 +5,6 @@ import {
   CogIcon,
   ConfirmDialog,
   ExternalLinkIcon,
-  FloatingPanel,
   FolderIcon,
   HeartIcon,
   HelpCircleIcon,
@@ -30,6 +29,7 @@ import {
   type PwaUpdateCheckResult,
 } from "@niclaslindstedt/oss-framework/pwa";
 
+import { SafeFloatingPanel } from "../generic/components/index.ts";
 import { RulesIcon } from "./icons.tsx";
 import { useT } from "./i18n/index.ts";
 import type { Project } from "./types.ts";
@@ -297,7 +297,7 @@ export function SideMenuContent({
         </FooterRow>
       </div>
 
-      <FloatingPanel
+      <SafeFloatingPanel
         open={aboutOpen}
         onClose={() => setAboutOpen(false)}
         triggerRef={aboutRef}
@@ -322,7 +322,7 @@ export function SideMenuContent({
         >
           {t("menu.source")}
         </FooterLink>
-      </FloatingPanel>
+      </SafeFloatingPanel>
 
       <ConfirmDialog
         open={deleting !== null}

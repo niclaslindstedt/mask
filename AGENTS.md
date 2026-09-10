@@ -101,7 +101,8 @@ stores ("store stays in the app"):
   `VariablesTab` / `RestoreTab`, `RulesScreen.tsx`, `SideMenuContent.tsx`,
   `SettingsModal.tsx` + `settings/`, `SearchOverlay.tsx` — the screens.
 - `src/generic/` — **framework candidates**: placeholder schemes, text
-  scanning / substitution, Luhn, file → text extraction, and four components.
+  scanning / substitution, Luhn, file → text extraction, the safe-area band
+  floating panels are placed in (`safeViewport.ts`), and six components.
   Written to the framework's rules (no domain names, labels injected); nothing
   here imports from `src/app/`. Lift into the framework when a second app
   needs it. See `src/generic/README.md`.

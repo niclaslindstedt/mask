@@ -4,12 +4,11 @@ import { useMemo, useState } from "react";
 import {
   Button,
   Section,
-  SelectPicker,
   ToggleRow,
   TrashIcon,
 } from "@niclaslindstedt/oss-framework/components";
 
-import { StringListEditor } from "../generic/components/index.ts";
+import { SafeSelect, StringListEditor } from "../generic/components/index.ts";
 import { scanRules } from "../generic/textScan.ts";
 import { kindLabel, kindOptions } from "./kinds.ts";
 import { useT } from "./i18n/index.ts";
@@ -71,7 +70,7 @@ export function RulesScreen({ rules }: { rules: RulesStore }) {
               empty: t("rules.alwaysEmpty"),
             }}
             aside={
-              <SelectPicker<string>
+              <SafeSelect<string>
                 value={alwaysKind}
                 options={kinds}
                 onChange={setAlwaysKind}
@@ -178,7 +177,7 @@ export function RulesScreen({ rules }: { rules: RulesStore }) {
             <p className="text-xs text-danger">{t("rules.patternInvalid")}</p>
           )}
           <div className="flex flex-wrap items-center gap-2">
-            <SelectPicker<string>
+            <SafeSelect<string>
               value={patternKind}
               options={kinds}
               onChange={setPatternKind}

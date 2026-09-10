@@ -1,15 +1,12 @@
 // SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 import { useEffect, useMemo, useRef, useState } from "react";
 
-import {
-  Button,
-  Checkbox,
-  SelectPicker,
-} from "@niclaslindstedt/oss-framework/components";
+import { Button, Checkbox } from "@niclaslindstedt/oss-framework/components";
 import { defaultToastStore } from "@niclaslindstedt/oss-framework/components";
 
 import {
   CopyablePane,
+  SafeSelect,
   SpanText,
   type HighlightSpan,
 } from "../generic/components/index.ts";
@@ -242,7 +239,7 @@ export function ReviewPanel({ project, doc, store, rules, settings }: Props) {
                           {kindLabel(cand.variable.kind, t)}
                         </span>
                       ) : (
-                        <SelectPicker<string>
+                        <SafeSelect<string>
                           value={row.kind}
                           options={kinds}
                           onChange={(k) => setKind(row.value, k)}
@@ -282,7 +279,7 @@ export function ReviewPanel({ project, doc, store, rules, settings }: Props) {
             }}
             className="min-w-0 flex-1 rounded-md border border-line bg-surface px-3 py-1.5 text-sm text-fg-bright placeholder:text-muted focus:border-accent focus:outline-none"
           />
-          <SelectPicker<string>
+          <SafeSelect<string>
             value={manualKind}
             options={kinds}
             onChange={setManualKind}

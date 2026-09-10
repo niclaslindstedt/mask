@@ -18,7 +18,9 @@ src/
 │   ├── textScan.ts       regex + literal scanning, overlap resolution, substitution
 │   ├── checkDigit.ts     Luhn
 │   ├── extractText/      file → text (PDF through a lazy pdf.js chunk)
-│   └── components/       FileDropZone, StringListEditor, SpanText, CopyablePane
+│   ├── safeViewport.ts   the band a floating panel may land in (safe area + top chrome)
+│   └── components/       FileDropZone, StringListEditor, SpanText, CopyablePane,
+│                         SafeFloatingPanel, SafeSelect
 └── app/                the domain
     ├── types.ts          Project / Doc / Variable / GlobalRules
     ├── detectors/        the Swedish-context detectors + generated dictionaries
@@ -43,6 +45,22 @@ matcher and modal, the namespaces registry ops and dialog, the logging store
 and viewer, the i18n runtime, the toast store, and the PWA update state
 machine. The app owns the domain and the stores: the project document, the
 detectors, the masking pipeline, the rules, and the screens.
+
+### Where a dropdown is allowed to land
+
+The framework's floating geometry (`computeFloatingRect`) takes the visible
+band as an argument, and its own hook fills that in from the raw visual
+viewport. On an installed iOS PWA that band starts at the top of the screen —
+under the clock, inside `env(safe-area-inset-top)` — so a menu with no room
+below its trigger flips upwards and fills the status bar and the screen's top
+bar.
+
+`src/generic/safeViewport.ts` keeps the framework's geometry and replaces only
+the band: the visual viewport shrunk by the safe-area insets and by anything
+the app marks `data-floating-edge="top"` (today the project header and the
+Settings header). `SafeFloatingPanel` and `SafeSelect` are the framework's
+`FloatingPanel` and `SelectPicker` over that band; every menu in the app goes
+through them.
 
 ## The masking pipeline
 
