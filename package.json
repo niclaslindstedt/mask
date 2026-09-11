@@ -25,7 +25,7 @@
     "@fontsource/jetbrains-mono": "^5.2.5",
     "@fontsource/opendyslexic": "^5.2.5",
     "@fontsource/source-serif-4": "^5.2.5",
-    "@niclaslindstedt/oss-framework": "^3.3.1",
+    "@niclaslindstedt/oss-framework": "^3.3.2",
     "jspdf": "^4.2.1",
     "pdfjs-dist": "^6.3.289",
     "preact": "^10.29.8",

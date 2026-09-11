@@ -2,15 +2,11 @@
 import { useRef, useState, type ReactNode } from "react";
 
 import {
+  ActionMenuList,
   FloatingPanel,
   type FloatingPlacement,
-} from "@niclaslindstedt/oss-framework/components";
-// `ActionMenuList` is a published subpath of its own — the framework's barrel
-// re-exports only its `RowAction` type, not the list itself.
-import {
-  ActionMenuList,
   type RowAction,
-} from "@niclaslindstedt/oss-framework/components/ActionMenuList";
+} from "@niclaslindstedt/oss-framework/components";
 
 import { GlyphButton } from "./GlyphButton.tsx";
 
