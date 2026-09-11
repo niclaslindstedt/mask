@@ -18,3 +18,10 @@ review carries a blacklist and a whitelist button beside its type picker, so
 the moment you spot a value the detectors will keep getting wrong you can
 settle it for good without leaving the review. A value belongs to one list at
 a time: listing it leaves just the button that takes it back off.
+
+Marking text in the preview is the shortest way in of all. Three buttons appear
+over the document: **Mask** adds the marked text to this review, **Always mask**
+does that and blacklists it, **Never mask** whitelists it. The last two are the
+add-then-press-the-list-button pair in a single press, which is usually how you
+meet a value worth a rule in the first place — while reading a document that
+has one.

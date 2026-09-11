@@ -19,10 +19,12 @@ The app opens in the **General** workspace with no project yet.
    fictional Swedish documents to try things on.
 3. **Review** — every value the detectors found is listed with a checkbox, its
    kind, and the placeholder it will get. Untick a false positive, change a
-   kind, or add a value the detectors missed — type it in, or select it in the
-   preview and press **Mask “…”**. Clicking a highlight in the preview toggles
-   it too. The kind picker ends in **Custom type…**: name the value yourself
-   ("Judge") and it masks to `JUDGE1` instead of `NAME1`.
+   kind, or add a value the detectors missed — type it in, or mark it in the
+   preview. Marking text puts three buttons above it: **Mask** (this document),
+   **Always mask** (blacklist it for every project), **Never mask** (whitelist
+   it, so no detector flags it again). Clicking a highlight in the preview
+   toggles it too. The kind picker ends in **Custom type…**: name the value
+   yourself ("Judge") and it masks to `JUDGE1` instead of `NAME1`.
 4. **Confirm and mask** — the masked text appears in the output pane. Press
    **Copy** and paste it into your LLM.
 5. **Restore** — paste the answer into the **Restore** tab; every placeholder
@@ -30,6 +32,19 @@ The app opens in the **General** workspace with no project yet.
 
 The next document in the same project reuses the placeholders it already has,
 so a person masked as `NAME1` in the first letter is `NAME1` in the reply too.
+
+## Reading a document
+
+The review's preview is tinted and clipped because it is there to be decided
+about, not read. To read a document as it came in, press the **scroll** glyph
+on its row in the document list, or **Read source** above the preview: the
+whole extracted text opens unmarked, with a copy button. A PDF is kept as the
+text pulled out of it — the file itself is never stored anywhere.
+
+On a phone the document list shares one scroll with the review, so it scrolls
+away as you move down, and the intake box above them folds into a single row as
+soon as you scroll past it — still there to press, just out of the way. Scroll
+back to the top and it unfolds.
 
 ## Placeholder styles
 
