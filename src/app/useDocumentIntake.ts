@@ -46,6 +46,7 @@ export function useDocumentIntake(store: MaskStore, projectId: string | null) {
             text: extracted.text,
             source: "file",
             format: extracted.kind,
+            markdown: extracted.markdown,
             pages: extracted.pages,
           });
         } catch (err) {

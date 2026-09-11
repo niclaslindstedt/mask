@@ -22,6 +22,9 @@ type Props = {
   labels: CopyablePaneLabels;
   /** Extra header controls, rendered before the copy button. */
   actions?: ReactNode;
+  /** Drawn in place of the raw text. The copy button and the count still read
+   *  `value`, so what leaves the pane is the source however it is shown. */
+  body?: ReactNode;
   onCopied?: () => void;
   className?: string;
   /** Height cap for the scrolling body (a Tailwind `max-h-*` class). */
@@ -33,6 +36,7 @@ export function CopyablePane({
   value,
   labels,
   actions,
+  body,
   onCopied,
   className = "",
   bodyClassName = "max-h-[60vh]",
@@ -55,10 +59,10 @@ export function CopyablePane({
         </div>
       </header>
       <div
-        className={`min-h-0 overflow-y-auto px-3 py-2 text-sm whitespace-pre-wrap break-words text-fg ${bodyClassName}`}
+        className={`min-h-0 overflow-y-auto px-3 py-2 text-sm break-words text-fg ${body === undefined ? "whitespace-pre-wrap" : ""} ${bodyClassName}`}
       >
         {value.length > 0 ? (
-          value
+          (body ?? value)
         ) : (
           <span className="text-muted">{labels.empty}</span>
         )}

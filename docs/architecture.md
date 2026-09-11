@@ -18,10 +18,12 @@ src/
 │   ├── textScan.ts       regex + literal scanning, overlap resolution, substitution
 │   ├── checkDigit.ts     Luhn
 │   ├── extractText/      file → text (PDF through a lazy pdf.js chunk,
-│   │                     laid back out into paragraphs by `layout.ts`)
+│   │                     laid back out into paragraphs by `layout.ts`, then
+│   │                     written back out as Markdown by `markup.ts`)
+│   ├── pdf/              Markdown → PDF (a pure typesetter + a lazy jsPDF writer)
 │   ├── collapseOnScroll.ts  collapse a scroll container's header once it is scrolled past
 │   └── components/       FileDropZone, StringListEditor, GlyphButton, SpanText,
-│                         CopyablePane, SelectOrCreate
+│                         CopyablePane, MarkdownText, DownloadMenu, SelectOrCreate
 └── app/                the domain
     ├── types.ts          Project / Doc / Variable / GlobalRules
     ├── detectors/        the Swedish-context detectors + generated dictionaries
@@ -147,9 +149,10 @@ SVG attributes like `focusable` as `"false"`.
 
 The entry chunk carries the shell, the stores, the detectors' code, and the
 English catalog. Deferred behind `import()`: the Swedish catalog, the
-dictionaries data chunk (on first review), pdf.js (on the first PDF), the
-Settings modal, the changelog payload, and the developer test-data chunk (on
-the first time the toggle turns on).
+dictionaries data chunk (on first review), pdf.js (on the first PDF), the PDF
+_writer_ (on the first PDF download), the Settings modal, the changelog
+payload, and the developer test-data chunk (on the first time the toggle turns
+on).
 
 The PDF chunk pulls pdf.js from `pdfjs-dist`'s `legacy/` build: the default
 build reads the `Iterator` global at module scope, so it throws before a page
@@ -186,6 +189,51 @@ margins, the font height) rather than fixed in points, so the pass does not
 assume a paper size or a type size. `tests/pdfLayout_test.ts` covers the rules
 one at a time; `tests/pdfExtract_test.ts` runs the whole thing over a real
 five-page judgment in `tests/fixtures/`.
+
+### Keeping the page's headings and emphasis
+
+A page says things with type as well as with words: a section title is set
+larger, a warning is set in bold, a citation in italics. An extractor that
+hands back only characters throws all of it away, and the reader on the other
+end — a person or a language model — can no longer tell a section title from a
+sentence. So the reflowed paragraphs go through one more pure pass,
+`extractText/markup.ts`, which writes that structure back out as Markdown:
+
+- **Headings from size.** A paragraph set well above the document's body size
+  becomes `#`, `##` or `###`, by how far above it stands. The body size is the
+  glyph height carrying the most text across the _whole_ document, so a cover
+  page set large doesn't make its own type the body.
+- **Headings from weight.** A paragraph at body size but wholly bold, one
+  printed line, short, and without a sentence's punctuation is the other way a
+  document writes a heading — `###`.
+- **Emphasis from the face.** A bold or italic run becomes `**…**` / `*…*`,
+  with any surrounding space left outside the markers. A document set wholly in
+  one bold face is left unmarked: bold says nothing when everything is bold.
+- **Bullets from the glyph.** A paragraph opening `•`, `–` or `*` becomes a
+  real `-` item; a numbered one already spells itself.
+
+Which face a run was drawn in is not in the text stream — pdf.js only resolves
+a page's fonts while it builds the page's _operator list_, so `pdf.ts` builds
+one per page and throws it away for the font table it registers on the way.
+`bold` / `italic` come off that font when the producer filled the descriptor
+in, and off the PostScript name (`BCDEEE+TimesNewRomanPS-BoldMT`) when it
+didn't. A producer that defeats both leaves the page unstyled rather than
+unread.
+
+`tests/markup_test.ts` covers the rules over positioned runs;
+`tests/pdfRoundTrip_test.ts` writes a PDF with real bold and italic faces and
+reads it back, which is the only check that proves the face survives a file.
+
+### Writing a PDF back out
+
+`generic/pdf/` is the same split in the other direction: `layout.ts` is a pure
+typesetter — Markdown in, pages of drawing operations out, with the one thing
+it can't know (how wide a string is) injected as a `measure` callback — and
+`write.ts` paints those with jsPDF. Only the writer pulls jsPDF in, and only
+`src/app/download.ts` reaches it, through an `import()` on the press. It uses
+the PDF standard fonts, which every reader already has and which encode
+Latin-1, so an ordinary Swedish document costs the file nothing in embedded
+faces.
 
 ## PWA
 

@@ -22,6 +22,12 @@
 //                             is indented, a list marker starts it, or the
 //                             previous line stopped well short of the margin.
 //
+// Alongside the geometry it carries each run's *style* — whether the producer
+// drew it in a bold or an italic face — through to the paragraph, so a caller
+// can put the emphasis back into the text it renders (see `markup.ts`). The
+// geometry never reads the style, and every decision above is taken on the
+// plain text, so a marked-up paragraph breaks exactly where a plain one would.
+//
 // Everything here is pure and unit-testable: coordinates in, text out, no PDF
 // library in sight.
 
@@ -37,7 +43,14 @@ export type TextRun = {
   height: number;
   /** The producer ended a line after this run. */
   hasEOL?: boolean;
+  /** Drawn in a bold face. */
+  bold?: boolean;
+  /** Drawn in an italic face. */
+  italic?: boolean;
 };
+
+/** A stretch of text drawn in one style — the unit emphasis is put back on. */
+export type StyledSegment = { text: string; bold: boolean; italic: boolean };
 
 /** A run of text on one baseline, with the horizontal extent it covers. */
 export type TextLine = {
@@ -50,6 +63,23 @@ export type TextLine = {
   right: number;
   /** Tallest glyph on the line. */
   height: number;
+  /** The line's text split into runs of one style. Concatenating these gives
+   *  `text` back exactly. */
+  segments: StyledSegment[];
+};
+
+/** One paragraph of reflowed text: the plain string every heuristic here reads,
+ *  the same text split by style, and the shape a caller needs to tell a heading
+ *  from a body paragraph. */
+export type Paragraph = {
+  /** The paragraph's text, styling stripped. */
+  text: string;
+  /** The same text split into runs of one style. */
+  segments: StyledSegment[];
+  /** Tallest glyph in the paragraph — how a heading gives itself away. */
+  height: number;
+  /** Printed lines the paragraph was reflowed from. */
+  lines: number;
 };
 
 /** Two baselines this close are the same line. Kept tight on purpose: merging
@@ -134,6 +164,57 @@ function median(values: readonly number[]): number | null {
     : (sorted[mid - 1]! + sorted[mid]!) / 2;
 }
 
+// ── Styled segments ─────────────────────────────────────────────────────────
+
+/** The plain text a run of segments spells. */
+export function segmentsText(segments: readonly StyledSegment[]): string {
+  return segments.map((s) => s.text).join("");
+}
+
+/** A face, without the text it is set in. */
+type Style = { bold: boolean; italic: boolean };
+
+/** Whether two segments can be spelled as one. */
+function sameStyle(a: Style, b: Style): boolean {
+  return a.bold === b.bold && a.italic === b.italic;
+}
+
+/** Append `text` to `segments` in `style`, extending the last segment when it
+ *  is already in that style rather than starting a second one beside it. */
+function pushText(segments: StyledSegment[], text: string, style: Style): void {
+  if (text === "") return;
+  const last = segments[segments.length - 1];
+  if (last && sameStyle(last, style)) last.text += text;
+  else segments.push({ text, bold: style.bold, italic: style.italic });
+}
+
+/** Collapse every whitespace run to a single space and trim both ends —
+ *  `String.replace(/\s+/g, " ").trim()` over a list of segments, so the text
+ *  and its styling stay spelled the same way. */
+export function normalizeSegments(
+  segments: readonly StyledSegment[],
+): StyledSegment[] {
+  const out: StyledSegment[] = [];
+  let pendingSpace = false;
+  for (const segment of segments) {
+    for (const piece of segment.text.split(/(\s+)/)) {
+      if (piece === "") continue;
+      if (/^\s+$/.test(piece)) {
+        // A gap only becomes a space once something follows it, which drops a
+        // leading one; the trailing one is dropped by never flushing at the end.
+        pendingSpace = out.length > 0;
+        continue;
+      }
+      if (pendingSpace) {
+        pushText(out, " ", { bold: segment.bold, italic: segment.italic });
+        pendingSpace = false;
+      }
+      pushText(out, piece, segment);
+    }
+  }
+  return out;
+}
+
 /** Group runs onto shared baselines, inserting a space wherever the producer
  *  positioned the next run clear of the previous one's end rather than writing
  *  one. Runs are taken in the order given: a viewer hands them back in content
@@ -154,17 +235,23 @@ export function groupRunsIntoLines(runs: readonly TextRun[]): TextLine[] {
         left: run.x,
         right: run.x + run.width,
         height: run.height,
+        segments: [],
       };
       lastEnd = run.x;
     }
     const line = current!;
+    const style = { bold: run.bold === true, italic: run.italic === true };
     // A gap wider than a fraction of the glyph height is a space the producer
     // drew as positioning rather than as a character.
     const gap = run.x - lastEnd;
     if (line.text !== "" && gap > Math.max(1, run.height * 0.2)) {
-      if (!line.text.endsWith(" ")) line.text += " ";
+      if (!line.text.endsWith(" ")) {
+        line.text += " ";
+        pushText(line.segments, " ", style);
+      }
     }
     line.text += run.text;
+    pushText(line.segments, run.text, style);
     line.left = Math.min(line.left, run.x);
     line.right = Math.max(line.right, run.x + run.width);
     line.height = Math.max(line.height, run.height);
@@ -180,7 +267,10 @@ export function groupRunsIntoLines(runs: readonly TextRun[]): TextLine[] {
   if (current) lines.push(current);
 
   return lines
-    .map((line) => ({ ...line, text: line.text.replace(/\s+/g, " ").trim() }))
+    .map((line) => {
+      const segments = normalizeSegments(line.segments);
+      return { ...line, segments, text: segmentsText(segments) };
+    })
     .filter((line) => line.text !== "");
 }
 
@@ -265,16 +355,28 @@ export function splitIntoBlocks(lines: readonly TextLine[]): TextLine[][] {
 
 /** Join a wrapped line onto the paragraph so far. A word the producer split
  *  with a soft hyphen is put back together; anything else gets a space. */
-function appendWrapped(paragraph: string, line: string): string {
-  if (paragraph.endsWith("-")) {
+function appendWrappedSegments(
+  paragraph: readonly StyledSegment[],
+  line: readonly StyledSegment[],
+): StyledSegment[] {
+  const text = segmentsText(paragraph);
+  const next = segmentsText(line);
+  const out = paragraph.map((segment) => ({ ...segment }));
+  const last = out[out.length - 1];
+  if (text.endsWith("-")) {
     // Nothing follows a hyphen at a line end but the rest of the word, so
     // never a space. "multi-" + "verktyg" → "multiverktyg", with the hyphen
     // dropped as the soft hyphen it was; "A-" + "traktor" keeps the hyphen
     // the writer typed, which a capital or a digit before it gives away.
-    const soft = SOFT_HYPHEN_BREAK.test(paragraph) && /^\p{Ll}/u.test(line);
-    return (soft ? paragraph.slice(0, -1) : paragraph) + line;
+    if (last && SOFT_HYPHEN_BREAK.test(text) && /^\p{Ll}/u.test(next)) {
+      last.text = last.text.slice(0, -1);
+      if (last.text === "") out.pop();
+    }
+  } else if (last) {
+    pushText(out, " ", last);
   }
-  return `${paragraph} ${line}`;
+  for (const segment of line) pushText(out, segment.text, segment);
+  return out;
 }
 
 /** Whether `line` ends a paragraph rather than wrapping into `next`, within a
@@ -300,10 +402,10 @@ function breaksParagraph(
 /** Reflow one block's lines into paragraphs. Margins are the block's own: a
  *  column, a marginal note or an address panel is narrower than the page, and
  *  its lines still reach *its* right edge when they wrap. */
-export function reflowBlock(
+export function reflowBlockStyled(
   block: readonly TextLine[],
   pagePitch: number,
-): string[] {
+): Paragraph[] {
   if (block.length === 0) return [];
   const metrics = {
     left: commonLeft(block),
@@ -311,18 +413,39 @@ export function reflowBlock(
     pitch: pitchOf(block, pagePitch),
   };
 
-  const paragraphs: string[] = [];
-  let paragraph = block[0]!.text;
+  const paragraphs: Paragraph[] = [];
+  const started = (line: TextLine): Paragraph => ({
+    text: line.text,
+    segments: line.segments.map((segment) => ({ ...segment })),
+    height: line.height,
+    lines: 1,
+  });
+  let paragraph = started(block[0]!);
   for (let i = 1; i < block.length; i++) {
-    if (breaksParagraph(block[i - 1]!, block[i]!, metrics)) {
+    const line = block[i]!;
+    if (breaksParagraph(block[i - 1]!, line, metrics)) {
       paragraphs.push(paragraph);
-      paragraph = block[i]!.text;
+      paragraph = started(line);
     } else {
-      paragraph = appendWrapped(paragraph, block[i]!.text);
+      paragraph.segments = appendWrappedSegments(
+        paragraph.segments,
+        line.segments,
+      );
+      paragraph.text = segmentsText(paragraph.segments);
+      paragraph.height = Math.max(paragraph.height, line.height);
+      paragraph.lines += 1;
     }
   }
   paragraphs.push(paragraph);
   return paragraphs;
+}
+
+/** {@link reflowBlockStyled}, as plain text. */
+export function reflowBlock(
+  block: readonly TextLine[],
+  pagePitch: number,
+): string[] {
+  return reflowBlockStyled(block, pagePitch).map((p) => p.text);
 }
 
 /** One page's positioned runs → its paragraphs, in reading order. */
@@ -331,10 +454,17 @@ export function layoutPageParagraphs(runs: readonly TextRun[]): string[] {
 }
 
 /** One page's lines → its paragraphs, in reading order. */
-export function layoutLines(lines: readonly TextLine[]): string[] {
+export function layoutLinesStyled(lines: readonly TextLine[]): Paragraph[] {
   if (lines.length === 0) return [];
   const pitch = pitchOf(lines);
-  return splitIntoBlocks(lines).flatMap((block) => reflowBlock(block, pitch));
+  return splitIntoBlocks(lines).flatMap((block) =>
+    reflowBlockStyled(block, pitch),
+  );
+}
+
+/** {@link layoutLinesStyled}, as plain text. */
+export function layoutLines(lines: readonly TextLine[]): string[] {
+  return layoutLinesStyled(lines).map((p) => p.text);
 }
 
 /** One page's positioned runs → its text, one paragraph per line. */
@@ -454,23 +584,69 @@ export function layoutDocumentText(
 
 /** The same, from pages already grouped into lines — what a caller reading a
  *  long document wants, so a page's runs can be dropped as it is read. */
-export function layoutDocumentLines(
+export function layoutDocumentParagraphs(
   pages: readonly (readonly TextLine[])[],
-): string {
-  const paragraphs: string[] = [];
+): Paragraph[] {
+  const paragraphs: Paragraph[] = [];
   for (const page of stripRunningFurniture(pages)) {
-    const laid = layoutLines(page);
+    const laid = layoutLinesStyled(page);
     const previous = paragraphs[paragraphs.length - 1];
     if (
       previous !== undefined &&
       laid.length > 0 &&
-      continuesAcrossPages(previous, laid[0]!)
+      continuesAcrossPages(previous.text, laid[0]!.text)
     ) {
-      paragraphs[paragraphs.length - 1] = appendWrapped(previous, laid[0]!);
+      const carried = laid[0]!;
+      previous.segments = appendWrappedSegments(
+        previous.segments,
+        carried.segments,
+      );
+      previous.text = segmentsText(previous.segments);
+      previous.height = Math.max(previous.height, carried.height);
+      previous.lines += carried.lines;
       paragraphs.push(...laid.slice(1));
     } else {
       paragraphs.push(...laid);
     }
   }
-  return paragraphs.join("\n\n");
+  return paragraphs;
+}
+
+/** {@link layoutDocumentParagraphs}, as plain text. */
+export function layoutDocumentLines(
+  pages: readonly (readonly TextLine[])[],
+): string {
+  return layoutDocumentParagraphs(pages)
+    .map((paragraph) => paragraph.text)
+    .join("\n\n");
+}
+
+/** The size the document's *body* is set in — the glyph height that carries
+ *  the most text, bucketed to the nearest half point. Headings are recognised
+ *  by standing above it, so it has to be the size of the running prose rather
+ *  than the average of prose and display type: weighting each line by how many
+ *  characters it holds is what keeps a page of body text from being outvoted
+ *  by a cover page of large ones. */
+export function bodyTextHeight(
+  pages: readonly (readonly TextLine[])[],
+): number {
+  const weight = new Map<number, number>();
+  for (const page of pages) {
+    for (const line of page) {
+      const key = Math.round(line.height * 2) / 2;
+      if (key <= 0) continue;
+      weight.set(key, (weight.get(key) ?? 0) + line.text.length);
+    }
+  }
+  let best = 0;
+  let bestWeight = -1;
+  // Ascending, so a tie leaves the smaller size standing — body type is
+  // commoner than display type, never the other way round.
+  for (const [height, chars] of [...weight].sort(([a], [b]) => a - b)) {
+    if (chars > bestWeight) {
+      best = height;
+      bestWeight = chars;
+    }
+  }
+  return best;
 }

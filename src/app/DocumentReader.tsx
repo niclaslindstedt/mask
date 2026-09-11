@@ -6,7 +6,7 @@ import {
 } from "@niclaslindstedt/oss-framework/components";
 import { defaultToastStore } from "@niclaslindstedt/oss-framework/components";
 
-import { CopyablePane } from "../generic/components/index.ts";
+import { CopyablePane, MarkdownText } from "../generic/components/index.ts";
 import { useT } from "./i18n/index.ts";
 import type { Doc } from "./types.ts";
 
@@ -17,6 +17,10 @@ import type { Doc } from "./types.ts";
 //
 // The text *is* the source: a PDF is kept as the text pulled out of it, never
 // as the file, because nothing a user uploads is stored anywhere.
+//
+// A PDF's text carries the page's headings and emphasis as Markdown, and this
+// is a reading surface with nothing tinted over it — so it is shown formatted.
+// The copy button still takes the source, marks and all.
 
 type Props = {
   doc: Doc | null;
@@ -75,6 +79,11 @@ export function DocumentReader({ doc, onClose }: Props) {
             title={t("reader.title")}
             value={doc.text}
             bodyClassName="max-h-[60vh]"
+            body={
+              doc.markdown ? (
+                <MarkdownText text={doc.text} className="prose-pane" />
+              ) : undefined
+            }
             labels={{
               copy: t("common.copy"),
               copied: t("common.copied"),

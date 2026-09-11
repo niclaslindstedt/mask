@@ -42,6 +42,9 @@ export type Doc = {
   text: string;
   source: "file" | "paste" | "sample";
   format: "text" | "pdf";
+  /** Whether `text` is Markdown — the review renders it formatted rather than
+   *  verbatim, and a download offers the PDF it can be typeset into. */
+  markdown?: boolean;
   addedAt: string;
   pages?: number;
   /** The masked text as last confirmed, if the review was confirmed. */

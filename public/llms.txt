@@ -13,6 +13,8 @@
 ## Features
 
 - Upload a PDF or text file, or paste text; detectors propose what to mask
+- A PDF's headings, bold and italics survive as Markdown, shown formatted
+- Download the masked text as a PDF or a Markdown file
 - Review every candidate, fix its kind, add what was missed, confirm
 - Mark text in a document to mask it, always mask it, or never mask it again
 - Read any document's source text unmarked, beside the review

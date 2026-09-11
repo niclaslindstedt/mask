@@ -178,6 +178,12 @@ export const en = {
       pattern: "Custom pattern",
       detector: "Detected",
     },
+    download: "Download",
+    downloadMenu: "Download format",
+    downloadPdf: "PDF document",
+    downloadMarkdown: "Markdown file",
+    downloadFailed: "Could not build the PDF — reload the page and try again.",
+    pageNumberOf: "of",
     kindPickerLabel: "Kind of value",
   },
   reader: {
