@@ -10,10 +10,18 @@ import { useFileDrop } from "@niclaslindstedt/oss-framework/hooks";
 // target, the hidden `<input type="file">` a click opens, and the "drop now"
 // highlight. Labels inject — the component has no vocabulary for what the
 // files are.
+//
+// `compact` is the same surface folded into a single row — the shape it takes
+// on a phone once the reader has scrolled past it. It still drops, still
+// browses, and still shows its extras; it just stops spending a fifth of the
+// screen saying so.
 
 export type FileDropZoneLabels = {
   /** Headline inside the zone ("Drop files here"). */
   title: string;
+  /** Headline when `compact` — shorter, and about pressing rather than
+   *  dropping ("Add a file"). Falls back to `title`. */
+  compactTitle?: string;
   /** Secondary line ("PDF or text, or press to browse"). */
   hint?: string;
   /** Shown while a file drag hovers the zone. */
@@ -30,6 +38,9 @@ type Props = {
   children?: ReactNode;
   className?: string;
   disabled?: boolean;
+  /** Fold the zone into one row: no hint, glyph and label side by side, and
+   *  the extras beside them rather than under. */
+  compact?: boolean;
 };
 
 export function FileDropZone({
@@ -40,6 +51,7 @@ export function FileDropZone({
   children,
   className = "",
   disabled = false,
+  compact = false,
 }: Props) {
   const zoneRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -55,27 +67,41 @@ export function FileDropZone({
     ? "border-accent bg-accent/10 text-fg-bright"
     : "border-line bg-surface text-muted hover:border-accent/60 hover:text-fg";
 
+  const title = compact ? (labels.compactTitle ?? labels.title) : labels.title;
+
   return (
     <div
       ref={zoneRef}
-      className={`relative rounded-lg border-2 border-dashed transition-colors ${highlight} ${className}`.trim()}
+      className={`relative rounded-lg border-2 border-dashed transition-colors ${
+        compact ? "flex items-center gap-2 px-2 py-1" : ""
+      } ${highlight} ${className}`.trim()}
     >
       <button
         type="button"
         disabled={disabled}
         onClick={() => inputRef.current?.click()}
-        className="flex w-full cursor-pointer flex-col items-center gap-1 px-4 py-6 text-center disabled:cursor-not-allowed"
+        className={`flex cursor-pointer items-center justify-center disabled:cursor-not-allowed ${
+          compact
+            ? "min-w-0 flex-1 gap-2 px-2 py-1.5"
+            : "w-full flex-col gap-1 px-4 py-6 text-center"
+        }`}
       >
-        <UploadIcon className="h-6 w-6" />
-        <span className="text-sm font-medium">
-          {active ? labels.active : labels.title}
+        <UploadIcon className={compact ? "h-4 w-4 shrink-0" : "h-6 w-6"} />
+        <span className="truncate text-sm font-medium">
+          {active ? labels.active : title}
         </span>
-        {labels.hint && !active && (
+        {!compact && labels.hint && !active && (
           <span className="text-xs text-muted">{labels.hint}</span>
         )}
       </button>
       {children && (
-        <div className="flex justify-center px-4 pb-4 text-xs">{children}</div>
+        <div
+          className={`flex justify-center text-xs ${
+            compact ? "shrink-0" : "px-4 pb-4"
+          }`}
+        >
+          {children}
+        </div>
       )}
       <input
         ref={inputRef}

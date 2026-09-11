@@ -1,7 +1,12 @@
 // SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 import { useEffect, useMemo, useRef, useState } from "react";
 
-import { Button, Checkbox } from "@niclaslindstedt/oss-framework/components";
+import {
+  Button,
+  Checkbox,
+  CloseIcon,
+  ScrollTextIcon,
+} from "@niclaslindstedt/oss-framework/components";
 import { defaultToastStore } from "@niclaslindstedt/oss-framework/components";
 
 import {
@@ -22,6 +27,7 @@ import {
   ruleListing,
   type RuleListing,
 } from "./masking.ts";
+import { mergeRows, upsertRow, type Row } from "./reviewRows.ts";
 import type { Doc, Project } from "./types.ts";
 import type { AppSettings } from "./useAppSettings.ts";
 import { useDictionariesReady } from "./useDictionariesReady.ts";
@@ -45,6 +51,12 @@ import * as output from "../output.ts";
 // here carries to every project: blacklist a value and it is masked wherever
 // it turns up, whitelist one and no detector flags it again. A value is on at
 // most one list, so listing it leaves only the button that takes it back.
+//
+// Marking text in the preview offers the same three decisions in one step —
+// **Mask** adds it to this document's rows, **Always mask** does that and
+// blacklists it, **Never mask** whitelists it — so settling a value the
+// detectors missed, or one they keep getting wrong, is one press rather than
+// an add followed by a hunt for its row.
 
 type Props = {
   project: Project;
@@ -53,9 +65,9 @@ type Props = {
   rules: RulesStore;
   settings: AppSettings;
   kinds: CustomKindsStore;
+  /** Open the document's source text for reading, unmarked. */
+  onReadSource?: () => void;
 };
-
-type Row = { value: string; kind: string; include: boolean; manual?: boolean };
 
 export function ReviewPanel({
   project,
@@ -64,6 +76,7 @@ export function ReviewPanel({
   rules,
   settings,
   kinds,
+  onReadSource,
 }: Props) {
   const t = useT();
   const ready = useDictionariesReady();
@@ -95,23 +108,13 @@ export function ReviewPanel({
   // already decided and adds any newcomer ticked.
   const [rows, setRows] = useState<Row[]>([]);
   useEffect(() => {
-    setRows((prev) => {
-      const byValue = new Map(prev.map((r) => [r.value, r]));
-      const next: Row[] = candidates.map((c) => {
-        const old = byValue.get(c.value);
-        return old ?? { value: c.value, kind: c.kind, include: true };
-      });
-      // Rows detection no longer offers but the user still needs: one they
-      // typed in by hand, and one they just whitelisted — its own button is
-      // how they take that back. Each goes back roughly where it stood.
-      prev.forEach((r, i) => {
-        if (next.some((n) => n.value === r.value)) return;
-        if (!r.manual && ruleListing(rules.rules, r.value) !== "whitelist")
-          return;
-        next.splice(Math.min(i, next.length), 0, r);
-      });
-      return next;
-    });
+    setRows((prev) =>
+      mergeRows(
+        prev,
+        candidates,
+        (value) => ruleListing(rules.rules, value) === "whitelist",
+      ),
+    );
   }, [candidates, rules.rules]);
 
   const [manual, setManual] = useState("");
@@ -203,10 +206,25 @@ export function ReviewPanel({
   function addManual(value: string, kind: string) {
     const v = value.trim();
     if (!v || rows.some((r) => r.value === v)) return;
-    setRows((prev) => [
-      ...prev,
-      { value: v, kind, include: true, manual: true },
-    ]);
+    setRows((prev) => upsertRow(prev, v, kind, true).rows);
+  }
+  /** The three decisions a marked piece of text can be settled with in one
+   *  press. Each puts the value among the rows; two of them also settle it
+   *  globally, which is what the row's own list buttons would have done. */
+  function actOnSelection(action: "mask" | "always" | "never") {
+    const value = selection.trim();
+    if (!value) return;
+    const { rows: next, kind } = upsertRow(
+      rows,
+      value,
+      manualKind,
+      action !== "never",
+    );
+    setRows(next);
+    if (action === "always") rules.addAlways(value, kind);
+    if (action === "never") rules.addNever(value);
+    setSelection("");
+    dropSelection();
   }
 
   function confirm() {
@@ -404,34 +422,47 @@ export function ReviewPanel({
           >
             {doc.masked ? t("review.reconfirm") : t("review.confirm")}
           </Button>
-          {selection && (
-            <Button
-              onClick={() => {
-                addManual(selection, manualKind);
-                setSelection("");
-              }}
-            >
-              {t("review.maskSelection", {
-                value:
-                  selection.length > 24
-                    ? `${selection.slice(0, 24)}…`
-                    : selection,
-              })}
-            </Button>
-          )}
         </div>
       </section>
 
       <div className="grid gap-4 lg:grid-cols-2">
         <section className="flex min-h-0 flex-col overflow-hidden rounded-lg border border-line bg-surface">
-          <header className="flex shrink-0 items-center justify-between gap-2 border-b border-line bg-surface-2 px-3 py-2">
+          <header className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-b border-line bg-surface-2 px-3 py-2">
             <h3 className="text-sm font-semibold text-fg-bright">
               {t("review.preview")}
             </h3>
-            <span className="text-xs text-muted">
-              {t("review.selectionHint")}
-            </span>
+            <div className="flex min-w-0 items-center gap-2">
+              <span className="min-w-0 truncate text-xs text-muted">
+                {t("review.selectionHint")}
+              </span>
+              {onReadSource && (
+                <button
+                  type="button"
+                  onClick={onReadSource}
+                  title={t("reader.openTitle", { name: doc.name })}
+                  className="inline-flex shrink-0 cursor-pointer items-center gap-1 rounded px-1.5 py-1 text-xs text-accent hover:bg-surface-3"
+                >
+                  <ScrollTextIcon className="h-4 w-4" />
+                  {t("reader.open")}
+                </button>
+              )}
+            </div>
           </header>
+          {selection && (
+            <SelectionActions
+              value={selection}
+              /* A value the project already has a placeholder for is masked
+                 whatever the whitelist says, so it isn't offered here either. */
+              whitelistable={!byValue.get(selection.trim())?.variable}
+              onMask={() => actOnSelection("mask")}
+              onAlways={() => actOnSelection("always")}
+              onNever={() => actOnSelection("never")}
+              onDismiss={() => {
+                setSelection("");
+                dropSelection();
+              }}
+            />
+          )}
           <div
             ref={previewRef}
             onMouseUp={() => setSelection(currentSelection(previewRef.current))}
@@ -467,6 +498,71 @@ export function ReviewPanel({
             })
           }
         />
+      </div>
+    </div>
+  );
+}
+
+/** What a marked piece of the preview can become, offered where it was
+ *  marked: masked here, masked everywhere, or never masked again. The value is
+ *  shown back so it is clear how far the selection actually reached. */
+function SelectionActions({
+  value,
+  whitelistable,
+  onMask,
+  onAlways,
+  onNever,
+  onDismiss,
+}: {
+  value: string;
+  whitelistable: boolean;
+  onMask: () => void;
+  onAlways: () => void;
+  onNever: () => void;
+  onDismiss: () => void;
+}) {
+  const t = useT();
+  const shown = value.length > 40 ? `${value.slice(0, 40)}…` : value;
+  return (
+    <div className="flex shrink-0 flex-col gap-2 border-b border-line bg-surface-3 px-3 py-2">
+      <div className="flex items-center gap-2">
+        <span className="min-w-0 flex-1 truncate text-xs text-fg-bright">
+          {t("review.selectionValue", { value: shown })}
+        </span>
+        <button
+          type="button"
+          onClick={onDismiss}
+          aria-label={t("common.cancel")}
+          title={t("common.cancel")}
+          className="inline-flex h-6 w-6 shrink-0 cursor-pointer items-center justify-center rounded text-muted hover:bg-surface-2 hover:text-fg"
+        >
+          <CloseIcon className="h-4 w-4" />
+        </button>
+      </div>
+      <div className="flex flex-wrap items-center gap-2">
+        <Button variant="primary" onClick={onMask}>
+          {t("review.selectionMask")}
+        </Button>
+        <Button
+          onClick={onAlways}
+          title={t("review.selectionAlwaysTitle", { value: shown })}
+        >
+          <span className="flex items-center gap-1.5">
+            <BlacklistIcon className="h-4 w-4" />
+            {t("review.selectionAlways")}
+          </span>
+        </Button>
+        {whitelistable && (
+          <Button
+            onClick={onNever}
+            title={t("review.selectionNeverTitle", { value: shown })}
+          >
+            <span className="flex items-center gap-1.5">
+              <WhitelistIcon className="h-4 w-4" />
+              {t("review.selectionNever")}
+            </span>
+          </Button>
+        )}
       </div>
     </div>
   );
@@ -537,6 +633,13 @@ function findOccurrences(
     from = at + value.length;
   }
   return out;
+}
+
+/** Let the marked text go once it has been decided about, so the decision
+ *  bar doesn't linger over a selection that has already been settled. */
+function dropSelection() {
+  if (typeof window === "undefined") return;
+  window.getSelection()?.removeAllRanges();
 }
 
 function currentSelection(container: HTMLElement | null): string {

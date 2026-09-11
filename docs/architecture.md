@@ -20,12 +20,14 @@ src/
 │   ├── extractText/      file → text (PDF through a lazy pdf.js chunk,
 │   │                     laid back out into paragraphs by `layout.ts`)
 │   ├── safeViewport.ts   the band a floating panel may land in (safe area + top chrome)
+│   ├── collapseOnScroll.ts  collapse a scroll container's header once it is scrolled past
 │   └── components/       FileDropZone, StringListEditor, SpanText, CopyablePane,
 │                         SafeFloatingPanel, SafeSelect, SelectOrCreate
 └── app/                the domain
     ├── types.ts          Project / Doc / Variable / GlobalRules
     ├── detectors/        the Swedish-context detectors + generated dictionaries
     ├── masking.ts        detect → plan → mask / unmask (pure)
+    ├── reviewRows.ts     the review's rows: fold in a fresh detection, add one (pure)
     ├── useMaskStore.ts   projects per workspace, undo/redo, storage backend
     ├── dev/              the developer test-data backend (lazy, dev-only)
     ├── useRules.ts       the global rules (one key across workspaces)
@@ -33,6 +35,7 @@ src/
     ├── useCustomKinds.ts those types' two lists — global, and per workspace
     ├── useAppSettings.ts, useNamespaces.ts, migrations.ts, log.ts
     ├── i18n/             en + sv catalogs over the framework's createI18n
+    ├── DocumentReader.tsx  a document's source text, read rather than reviewed
     └── *Screen / *Tab / *Panel.tsx   the screens
 ```
 
@@ -76,7 +79,10 @@ through them.
    candidates.
 2. **Review** (`ReviewPanel`): the user ticks, retypes kinds, adds values, and
    moves a value on or off either global list without leaving the review
-   (`ruleListing` says which list it is on). A
+   (`ruleListing` says which list it is on). Marking text in the preview offers
+   the same three decisions in one press — **Mask**, **Always mask**
+   (blacklist), **Never mask** (whitelist) — over the pure row transforms in
+   `reviewRows.ts`. A
    kind is a free string, so a kind picker's **Custom type…** entry can hand a
    value any label — saved types (`useCustomKinds`) are the same labels, kept
    for reuse.
@@ -94,6 +100,21 @@ The detectors that need a dictionary (`name`, `city`) read module-level sets
 filled by `loadDictionaries()`, a lazy import of the ~200 KB generated data
 chunk, so the boot bundle stays small; the review re-runs detection once the
 chunk lands.
+
+### The Documents tab at phone width
+
+Desktop gives the tab two columns, each scrolling on its own: the intake and
+the document list on the left, the review on the right. A phone has no room for
+that, so the wrapper around the two is `md:contents` — from `md` up it
+dissolves and the panes are laid out by the row above it; below `md` it _is_
+the scroll container, and list and review scroll as one.
+
+The intake is rendered outside that scroll when the layout is stacked, as the
+tab's own header, so folding it leaves it in reach rather than taking it away.
+`useCollapseOnScroll` (`src/generic/`) watches the scroll container: past
+~56 px the intake folds to a single row (`FileDropZone`'s `compact`), and it
+unfolds again near the top. Two thresholds rather than one, because folding
+changes the height of the very thing being measured.
 
 ## Storage sits behind a backend
 

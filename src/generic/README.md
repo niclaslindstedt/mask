@@ -17,7 +17,8 @@ here; nothing here may import from `src/app/`.
 | [`extractText/`](extractText)                    | File → plain text: text-like files read directly, PDFs through a lazily-loaded `pdfjs-dist` chunk and a geometry-driven reflow.     |
 | [`safeViewport.ts`](safeViewport.ts)             | The band of the viewport a floating panel may land in — the visual viewport minus the safe-area insets and any pinned top chrome.   |
 | [`softKeyboard.ts`](softKeyboard.ts)             | Open a touch device's keyboard for a field that mounts a tick later, plus the soft-keyboard hints a short text field wants.         |
-| [`components/FileDropZone.tsx`](components)      | Drop target + browse button over the framework's `useFileDrop`.                                                                     |
+| [`collapseOnScroll.ts`](collapseOnScroll.ts)     | Collapse a scroll container's header once the reader is past it, on two thresholds so the collapse can't loop.                      |
+| [`components/FileDropZone.tsx`](components)      | Drop target + browse button over the framework's `useFileDrop`, foldable into a single row.                                         |
 | [`components/StringListEditor.tsx`](components)  | Add / remove a list of strings.                                                                                                     |
 | [`components/GlyphButton.tsx`](components)       | The framework's `IconButton` with its label drawn beside the glyph once the screen is wide enough for it.                           |
 | [`components/SpanText.tsx`](components)          | Render a text with typed spans highlighted (and clickable).                                                                         |
