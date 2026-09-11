@@ -4,15 +4,16 @@ import { useEffect, useRef, useState } from "react";
 import {
   CheckIcon,
   CloseIcon,
+  SelectPicker,
+  type SelectOption,
 } from "@niclaslindstedt/oss-framework/components";
 
 import {
   PLAIN_TEXT_KEYBOARD_PROPS,
   primeSoftKeyboard,
 } from "../softKeyboard.ts";
-import { SafeSelect, type SelectOption } from "./SafeSelect.tsx";
 
-// A `SafeSelect` whose last entry is "something else…": choosing it swaps the
+// A `SelectPicker` whose last entry is "something else…": choosing it swaps the
 // trigger for a text field, and what the user types becomes the value — a
 // one-off option that never had to be defined anywhere first. Escape (or the
 // cancel button) puts the previous value back; Enter, the tick, and blurring
@@ -145,7 +146,7 @@ export function SelectOrCreate({
   }
 
   return (
-    <SafeSelect<string>
+    <SelectPicker<string>
       value={value}
       options={[...options, { value: CREATE_OPTION, label: labels.create }]}
       onChange={(next) => {

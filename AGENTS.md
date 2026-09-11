@@ -102,8 +102,8 @@ stores ("store stays in the app"):
   `SettingsModal.tsx` + `settings/`, `SearchOverlay.tsx` — the screens.
 - `src/generic/` — **framework candidates**: placeholder schemes, text
   scanning / substitution, Luhn, file → text extraction (including the pass
-  that lays a PDF's positioned runs back out into paragraphs), the safe-area band
-  floating panels are placed in (`safeViewport.ts`), and six components.
+  that lays a PDF's positioned runs back out into paragraphs), and five
+  components.
   Written to the framework's rules (no domain names, labels injected); nothing
   here imports from `src/app/`. Lift into the framework when a second app
   needs it. See `src/generic/README.md`.
@@ -272,6 +272,9 @@ for a headline feature; create or update it in the same PR as the `doc:` slug.
   `scripts/generate-icons.mjs` (and `public/icons/icon.svg` to match) and rerun
   `make icons`.
 - No `console.*` in app code — route diagnostics through `src/output.ts`.
+- Chrome pinned to the top of a screen carries `data-floating-edge="top"`, so
+  the framework stops dropdowns at it instead of over it (it already keeps them
+  out of the iOS safe area). A new pinned header needs the attribute.
 - `src/generic/` never imports from `src/app/`, never carries a domain name
   (`name`, `pin`, `project`), and takes every user-facing string as a prop.
 
