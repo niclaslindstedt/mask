@@ -19,6 +19,7 @@ here; nothing here may import from `src/app/`.
 | [`softKeyboard.ts`](softKeyboard.ts)             | Open a touch device's keyboard for a field that mounts a tick later, plus the soft-keyboard hints a short text field wants.         |
 | [`components/FileDropZone.tsx`](components)      | Drop target + browse button over the framework's `useFileDrop`.                                                                     |
 | [`components/StringListEditor.tsx`](components)  | Add / remove a list of strings.                                                                                                     |
+| [`components/GlyphButton.tsx`](components)       | The framework's `IconButton` with its label drawn beside the glyph once the screen is wide enough for it.                           |
 | [`components/SpanText.tsx`](components)          | Render a text with typed spans highlighted (and clickable).                                                                         |
 | [`components/CopyablePane.tsx`](components)      | A read-only text pane with a copy button and a character count.                                                                     |
 | [`components/SafeFloatingPanel.tsx`](components) | The framework's `FloatingPanel` measured against the safe band, so a panel never lands under the status bar or the app's top bar.   |

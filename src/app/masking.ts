@@ -142,6 +142,20 @@ export function detectCandidates(
   );
 }
 
+/** Which global list a value sits on: the blacklist (always mask), the
+ *  whitelist (never mask), or neither. */
+export type RuleListing = "blacklist" | "whitelist" | null;
+
+/** The list a value is on, matched the way `detectCandidates` matches it —
+ *  the blacklist by exact text, the whitelist case-insensitively. The review's
+ *  per-value list buttons read their state from this. */
+export function ruleListing(rules: GlobalRules, value: string): RuleListing {
+  if (rules.always.some((e) => e.value === value)) return "blacklist";
+  const folded = value.toLowerCase();
+  if (rules.never.some((v) => v.toLowerCase() === folded)) return "whitelist";
+  return null;
+}
+
 export type MaskDecision = {
   value: string;
   kind: string;

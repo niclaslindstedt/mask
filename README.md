@@ -26,8 +26,9 @@ to restore the real values. Nothing leaves your browser.
 - **Placeholders that carry the role.** Mask a value under a name of your own —
   `JUDGE1` rather than `NAME1` — one value at a time, or from a list of
   placeholder types you keep per workspace or across all of them.
-- **Rules carry everywhere.** A global always-mask list, a never-mask list, and
-  your own regex patterns apply across every workspace and project.
+- **Rules carry everywhere.** A global blacklist (always mask), a whitelist
+  (never mask), and your own regex patterns apply across every workspace and
+  project — and a review row adds to either list in one press.
 - **Swedish first.** Personal identity and organisation numbers are
   check-digit verified; phone numbers, postal codes and street addresses
   follow Swedish conventions; names and localities come from SCB's and the
@@ -92,8 +93,10 @@ onto the intake (or press **Paste text**), review what was found, press
   style for this project, and un-reject values.
 - **Restore** — paste the LLM's answer, get it back with every placeholder of
   the project swapped for the real value.
-- **Rules** — the side-menu button opens the global always-mask / never-mask
-  lists and the custom regex patterns, with a live tester.
+- **Rules** — the side-menu button opens the global blacklist / whitelist and
+  the custom regex patterns, with a live tester. Every row in a review has a
+  blacklist and a whitelist button, so a decision made once carries to every
+  project.
 - **Placeholder types** — Settings → Masking keeps the custom types you reuse
   (Judge, Plaintiff, Car…), each one global or bound to the workspace it was
   added in.
@@ -140,8 +143,8 @@ the app on sample projects already holding them.
   Install above.
 - **A PDF adds with "contains no text"** — it is a scanned image; OCR it or
   paste the text.
-- **A name was not detected** — select it in the preview and mask it, or put
-  it on the always-mask list.
+- **A name was not detected** — select it in the preview and mask it, or
+  blacklist it.
 - More in [docs/troubleshooting.md](docs/troubleshooting.md).
 
 ## Documentation

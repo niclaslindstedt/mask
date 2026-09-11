@@ -6,14 +6,22 @@ import { defaultToastStore } from "@niclaslindstedt/oss-framework/components";
 
 import {
   CopyablePane,
+  GlyphButton,
   SelectOrCreate,
   SpanText,
   type HighlightSpan,
 } from "../generic/components/index.ts";
 import { kindLabelProblem, normalizeKindLabel } from "./customKinds.ts";
+import { BlacklistIcon, WhitelistIcon } from "./icons.tsx";
 import { kindClass, kindLabel, kindOptions } from "./kinds.ts";
 import { useT } from "./i18n/index.ts";
-import { buildMaskPlan, detectCandidates, projectStyle } from "./masking.ts";
+import {
+  buildMaskPlan,
+  detectCandidates,
+  projectStyle,
+  ruleListing,
+  type RuleListing,
+} from "./masking.ts";
 import type { Doc, Project } from "./types.ts";
 import type { AppSettings } from "./useAppSettings.ts";
 import { useDictionariesReady } from "./useDictionariesReady.ts";
@@ -32,6 +40,11 @@ import * as output from "../output.ts";
 // the spot: a value masked as "Judge" becomes `JUDGE1` rather than `NAME1`,
 // so the LLM reads the role and not just the slot. The label lives on that
 // value alone — the reusable ones are added in Settings → Masking.
+//
+// Beside each picker sit the two global-list buttons, so a decision made once
+// here carries to every project: blacklist a value and it is masked wherever
+// it turns up, whitelist one and no detector flags it again. A value is on at
+// most one list, so listing it leaves only the button that takes it back.
 
 type Props = {
   project: Project;
@@ -76,6 +89,8 @@ export function ReviewPanel({
     ],
   );
 
+  const listingOf = (value: string) => ruleListing(rules.rules, value);
+
   // The user's decisions, keyed by value. Re-detection keeps what the user
   // already decided and adds any newcomer ticked.
   const [rows, setRows] = useState<Row[]>([]);
@@ -86,11 +101,18 @@ export function ReviewPanel({
         const old = byValue.get(c.value);
         return old ?? { value: c.value, kind: c.kind, include: true };
       });
-      for (const r of prev)
-        if (r.manual && !next.some((n) => n.value === r.value)) next.push(r);
+      // Rows detection no longer offers but the user still needs: one they
+      // typed in by hand, and one they just whitelisted — its own button is
+      // how they take that back. Each goes back roughly where it stood.
+      prev.forEach((r, i) => {
+        if (next.some((n) => n.value === r.value)) return;
+        if (!r.manual && ruleListing(rules.rules, r.value) !== "whitelist")
+          return;
+        next.splice(Math.min(i, next.length), 0, r);
+      });
       return next;
     });
-  }, [candidates]);
+  }, [candidates, rules.rules]);
 
   const [manual, setManual] = useState("");
   const [manualKind, setManualKind] = useState("name");
@@ -152,6 +174,31 @@ export function ReviewPanel({
     setRows((prev) =>
       prev.map((r) => (r.value === value ? { ...r, kind } : r)),
     );
+    // A blacklisted value carries its kind in the rule, so retyping it here
+    // retypes the rule rather than leaving the two disagreeing.
+    if (listingOf(value) === "blacklist") rules.setAlwaysKind(value, kind);
+  }
+  /** Blacklist: mask this value in every project, ticked from now on. */
+  function toggleBlacklist(value: string, kind: string) {
+    if (listingOf(value) === "blacklist") {
+      rules.removeAlways(value);
+      return;
+    }
+    rules.addAlways(value, kind);
+    setRows((prev) =>
+      prev.map((r) => (r.value === value ? { ...r, include: true } : r)),
+    );
+  }
+  /** Whitelist: never flag this value again, and untick it here. */
+  function toggleWhitelist(value: string) {
+    if (listingOf(value) === "whitelist") {
+      rules.removeNever(value);
+      return;
+    }
+    rules.addNever(value);
+    setRows((prev) =>
+      prev.map((r) => (r.value === value ? { ...r, include: false } : r)),
+    );
   }
   function addManual(value: string, kind: string) {
     const v = value.trim();
@@ -170,8 +217,16 @@ export function ReviewPanel({
       style,
       () => freshId("var"),
     );
+    // Unticked values the project should stop suggesting. A whitelisted one
+    // is already settled globally, so it is not also rejected here — taking it
+    // off the whitelist should bring it straight back.
     const rejected = rows
-      .filter((r) => !r.include && !byValue.get(r.value)?.variable)
+      .filter(
+        (r) =>
+          !r.include &&
+          !byValue.get(r.value)?.variable &&
+          listingOf(r.value) !== "whitelist",
+      )
       .map((r) => r.value);
     store.confirmMask(project.id, doc.id, {
       variables: plan.variables,
@@ -232,7 +287,7 @@ export function ReviewPanel({
         {rows.length === 0 ? (
           <p className="text-sm text-muted">{t("review.noCandidates")}</p>
         ) : (
-          <ul className="divide-y divide-line overflow-hidden rounded-md border border-line">
+          <ul className="@container divide-y divide-line overflow-hidden rounded-md border border-line">
             {rows.map((row) => {
               const cand = byValue.get(row.value);
               return (
@@ -260,10 +315,10 @@ export function ReviewPanel({
                       })}
                     </span>
                   )}
-                  {/* Kind + placeholder: beside the value on a wide row, on
-                      their own line under it on a phone. */}
-                  <span className="flex w-full items-center justify-between gap-2 pl-8 sm:w-auto sm:pl-0">
-                    <span className="w-44 shrink-0">
+                  {/* Kind + lists + placeholder: beside the value on a wide
+                      row, on their own line under it on a phone. */}
+                  <span className="flex w-full max-w-full flex-wrap items-center gap-2 pl-8 sm:w-auto sm:pl-0">
+                    <span className="min-w-28 flex-1 sm:w-44 sm:flex-initial">
                       {cand?.variable ? (
                         <span className="text-xs text-muted">
                           {kindLabel(cand.variable.kind, t)}
@@ -281,7 +336,17 @@ export function ReviewPanel({
                         />
                       )}
                     </span>
-                    <span className="w-24 shrink-0 truncate text-right text-xs text-fg-bright tabular-nums">
+                    <ListButtons
+                      value={row.value}
+                      listing={listingOf(row.value)}
+                      /* A value the project already has a placeholder for is
+                         masked whatever the whitelist says, so only the
+                         blacklist is offered on its row. */
+                      whitelistable={!cand?.variable}
+                      onBlacklist={() => toggleBlacklist(row.value, row.kind)}
+                      onWhitelist={() => toggleWhitelist(row.value)}
+                    />
+                    <span className="w-16 shrink-0 truncate text-right text-xs text-fg-bright tabular-nums sm:w-24">
                       {cand?.variable ? (
                         cand.variable.token
                       ) : (
@@ -404,6 +469,57 @@ export function ReviewPanel({
         />
       </div>
     </div>
+  );
+}
+
+/** The two global-list buttons for one reviewed value. A value is on at most
+ *  one list, so the listed one stands alone — pressed, and the way back off.
+ *  Glyphs on a phone, glyphs with their labels once there is room. */
+function ListButtons({
+  value,
+  listing,
+  whitelistable,
+  onBlacklist,
+  onWhitelist,
+}: {
+  value: string;
+  listing: RuleListing;
+  whitelistable: boolean;
+  onBlacklist: () => void;
+  onWhitelist: () => void;
+}) {
+  const t = useT();
+  return (
+    <span className="flex shrink-0 items-center gap-1">
+      {listing !== "whitelist" && (
+        <GlyphButton
+          icon={<BlacklistIcon className="h-4 w-4" />}
+          label={t("review.blacklist")}
+          title={t(
+            listing === "blacklist"
+              ? "review.blacklistRemove"
+              : "review.blacklistAdd",
+            { value },
+          )}
+          pressed={listing === "blacklist"}
+          onClick={onBlacklist}
+        />
+      )}
+      {listing !== "blacklist" && whitelistable && (
+        <GlyphButton
+          icon={<WhitelistIcon className="h-4 w-4" />}
+          label={t("review.whitelist")}
+          title={t(
+            listing === "whitelist"
+              ? "review.whitelistRemove"
+              : "review.whitelistAdd",
+            { value },
+          )}
+          pressed={listing === "whitelist"}
+          onClick={onWhitelist}
+        />
+      )}
+    </span>
   );
 }
 

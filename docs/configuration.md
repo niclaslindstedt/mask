@@ -38,7 +38,7 @@ For the curious (and for a manual backup via the browser's devtools):
 | Key                                        | Holds                                              |
 | ------------------------------------------ | -------------------------------------------------- |
 | `mask:doc` / `mask:doc:<slug>`             | A workspace's projects, documents and placeholders |
-| `mask:rules`                               | The global always / never / pattern rules          |
+| `mask:rules`                               | The global blacklist / whitelist / pattern rules   |
 | `mask:kinds`                               | The placeholder types shared by every workspace    |
 | `mask:kinds:ws:<slug>`                     | A workspace's own placeholder types                |
 | `mask:settings`                            | The in-app settings above                          |
