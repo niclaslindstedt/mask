@@ -69,11 +69,14 @@ through them.
 ## The masking pipeline
 
 1. **Detect** (`detectCandidates`): the project's known variables and the
-   global always-list are looked up as literals; enabled custom patterns and
-   built-in detectors scan; overlapping spans resolve longest-first, then by
-   priority; never-listed and project-rejected values drop out; spans group
-   by distinct value into candidates.
-2. **Review** (`ReviewPanel`): the user ticks, retypes kinds, adds values. A
+   global blacklist (`rules.always`) are looked up as literals; enabled custom
+   patterns and built-in detectors scan; overlapping spans resolve
+   longest-first, then by priority; whitelisted (`rules.never`) and
+   project-rejected values drop out; spans group by distinct value into
+   candidates.
+2. **Review** (`ReviewPanel`): the user ticks, retypes kinds, adds values, and
+   moves a value on or off either global list without leaving the review
+   (`ruleListing` says which list it is on). A
    kind is a free string, so a kind picker's **Custom type…** entry can hand a
    value any label — saved types (`useCustomKinds`) are the same labels, kept
    for reuse.

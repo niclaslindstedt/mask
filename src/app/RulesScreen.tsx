@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 
 import {
   Button,
+  CodeIcon,
   Section,
   ToggleRow,
   TrashIcon,
@@ -14,6 +15,7 @@ import {
 } from "../generic/components/index.ts";
 import { scanRules } from "../generic/textScan.ts";
 import { kindLabelProblem, normalizeKindLabel } from "./customKinds.ts";
+import { BlacklistIcon, WhitelistIcon } from "./icons.tsx";
 import { kindLabel, kindOptions } from "./kinds.ts";
 import { useT } from "./i18n/index.ts";
 import { compilePattern } from "./masking.ts";
@@ -77,7 +79,10 @@ export function RulesScreen({
           <p className="mt-1 text-xs text-muted">{t("rules.intro")}</p>
         </header>
 
-        <Section title={t("rules.alwaysTitle")}>
+        <Section
+          title={t("rules.alwaysTitle")}
+          icon={<BlacklistIcon className="h-3.5 w-3.5" />}
+        >
           <p className="text-xs text-muted">{t("rules.alwaysHint")}</p>
           <StringListEditor
             items={rules.rules.always.map((e) => e.value)}
@@ -115,7 +120,10 @@ export function RulesScreen({
           />
         </Section>
 
-        <Section title={t("rules.neverTitle")}>
+        <Section
+          title={t("rules.neverTitle")}
+          icon={<WhitelistIcon className="h-3.5 w-3.5" />}
+        >
           <p className="text-xs text-muted">{t("rules.neverHint")}</p>
           <StringListEditor
             items={rules.rules.never}
@@ -130,7 +138,10 @@ export function RulesScreen({
           />
         </Section>
 
-        <Section title={t("rules.patternsTitle")}>
+        <Section
+          title={t("rules.patternsTitle")}
+          icon={<CodeIcon className="h-3.5 w-3.5" />}
+        >
           <p className="text-xs text-muted">{t("rules.patternsHint")}</p>
           {rules.rules.patterns.length === 0 ? (
             <p className="text-xs text-muted">{t("rules.patternsEmpty")}</p>

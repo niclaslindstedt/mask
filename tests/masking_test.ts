@@ -14,11 +14,16 @@ import {
   detectCandidates,
   maskText,
   retokenForKind,
+  ruleListing,
   tokensPresent,
   unmaskText,
   type DetectContext,
 } from "../src/app/masking.ts";
-import { EMPTY_RULES, type Variable } from "../src/app/types.ts";
+import {
+  EMPTY_RULES,
+  type GlobalRules,
+  type Variable,
+} from "../src/app/types.ts";
 
 const TEXT =
   "Anna Svensson (811218-9876), Storgatan 12, 123 45 Storstad, ringde 070-123 45 67. " +
@@ -126,6 +131,29 @@ describe("detectCandidates", () => {
       source: "variable",
       variable: variables[0],
     });
+  });
+});
+
+describe("ruleListing", () => {
+  const rules: GlobalRules = {
+    always: [{ value: "Svea", kind: "name" }],
+    never: ["Skatteverket"],
+    patterns: [],
+  };
+
+  it("names the list a value sits on, and matches the whitelist case-insensitively", () => {
+    expect(ruleListing(rules, "Svea")).toBe("blacklist");
+    expect(ruleListing(rules, "Skatteverket")).toBe("whitelist");
+    expect(ruleListing(rules, "skatteverket")).toBe("whitelist");
+    expect(ruleListing(rules, "Stockholm")).toBe(null);
+  });
+
+  it("matches the blacklist exactly, the way detection looks it up", () => {
+    expect(ruleListing(rules, "svea")).toBe(null);
+  });
+
+  it("reports nothing for an empty rule set", () => {
+    expect(ruleListing(EMPTY_RULES, "Svea")).toBe(null);
   });
 });
 

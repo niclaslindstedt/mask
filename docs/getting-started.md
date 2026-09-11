@@ -64,9 +64,12 @@ own vocabulary stays with it. See
 
 ## Rules
 
-The **Rules** button in the side menu opens the global lists — **Always mask**,
-**Never mask**, and your own regular-expression **patterns**. They apply to
-every workspace and project. See [`features/rules.md`](features/rules.md).
+The **Rules** button in the side menu opens the global lists — the
+**blacklist** (always mask), the **whitelist** (never mask), and your own
+regular-expression **patterns**. They apply to every workspace and project.
+Either list also takes a value straight from a review: each row of candidates
+carries a blacklist and a whitelist button beside its type. See
+[`features/rules.md`](features/rules.md).
 
 ## Workspaces
 

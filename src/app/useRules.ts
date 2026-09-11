@@ -44,6 +44,14 @@ export function useRules() {
       ),
     [setRules],
   );
+  const setAlwaysKind = useCallback(
+    (value: string, kind: string) =>
+      setRules((r) => ({
+        ...r,
+        always: r.always.map((e) => (e.value === value ? { ...e, kind } : e)),
+      })),
+    [setRules],
+  );
   const removeAlways = useCallback(
     (value: string) =>
       setRules((r) => ({
@@ -98,6 +106,7 @@ export function useRules() {
   return {
     rules,
     addAlways,
+    setAlwaysKind,
     removeAlways,
     addNever,
     removeNever,
