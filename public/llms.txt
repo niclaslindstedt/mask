@@ -13,6 +13,8 @@
 ## Features
 
 - Upload a PDF or text file, or paste text; detectors propose what to mask
+- A PDF's headings, bold and italics survive as Markdown, shown formatted
+- Download the masked text as a PDF or a Markdown file
 - Review every candidate, fix its kind, add what was missed, confirm
 - Projects remember placeholders so the same person gets the same one everywhere
 - Global always-mask / never-mask lists and custom regex patterns

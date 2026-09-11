@@ -170,6 +170,12 @@ export const sv: Catalog = {
       pattern: "Eget mönster",
       detector: "Upptäckt",
     },
+    download: "Ladda ner",
+    downloadMenu: "Nedladdningsformat",
+    downloadPdf: "PDF-dokument",
+    downloadMarkdown: "Markdown-fil",
+    downloadFailed: "Kunde inte skapa PDF:en — ladda om sidan och försök igen.",
+    pageNumberOf: "av",
     kindPickerLabel: "Typ av värde",
   },
   variables: {

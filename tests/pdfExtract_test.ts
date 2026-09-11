@@ -57,8 +57,21 @@ describe("extracting a real judgment", () => {
   });
 
   it("gives each numbered paragraph and heading its own paragraph", () => {
-    expect(paragraphs).toContain("Förbudet mot innehav av kniv");
+    expect(paragraphs).toContain("### Förbudet mot innehav av kniv");
     expect(paragraphs.filter((p) => /^\d+\. /.test(p))).toHaveLength(11);
+  });
+
+  it("writes the judgment's headings back out as Markdown", () => {
+    // The court's name is set largest on the page, the document type below it,
+    // and the section headings are body-sized but set in bold — three ways a
+    // document says "heading", and all three have to survive as one.
+    expect(paragraphs).toContain("# HÖGSTA DOMSTOLENS");
+    expect(paragraphs).toContain("## DOM");
+    for (const heading of ["PARTER", "SAKEN", "DOMSLUT", "DOMSKÄL"]) {
+      expect(paragraphs).toContain(`### ${heading}`);
+    }
+    // A numbered paragraph of body text is never a heading, however short.
+    expect(text).not.toMatch(/^#+ \d+\./m);
   });
 
   it("puts a word the line break split back together", () => {

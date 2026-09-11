@@ -4,15 +4,26 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Button, Checkbox } from "@niclaslindstedt/oss-framework/components";
 import { defaultToastStore } from "@niclaslindstedt/oss-framework/components";
 
+import { DownloadIcon } from "@niclaslindstedt/oss-framework/components";
+
 import {
   CopyablePane,
+  DownloadMenu,
   GlyphButton,
+  MarkdownText,
   SelectOrCreate,
   SpanText,
+  type DownloadFormat,
   type HighlightSpan,
 } from "../generic/components/index.ts";
 import { kindLabelProblem, normalizeKindLabel } from "./customKinds.ts";
-import { BlacklistIcon, WhitelistIcon } from "./icons.tsx";
+import { downloadMarkdown, downloadPdf } from "./download.ts";
+import {
+  BlacklistIcon,
+  FileMarkdownIcon,
+  FilePdfIcon,
+  WhitelistIcon,
+} from "./icons.tsx";
 import { kindClass, kindLabel, kindOptions } from "./kinds.ts";
 import { useT } from "./i18n/index.ts";
 import {
@@ -260,6 +271,38 @@ export function ReviewPanel({
   // never compared against the saved ones: typing a label a saved type already
   // has just picks that type.
   const acceptKind = (value: string) => kindLabelProblem(value) === null;
+  // The masked text leaves the app as the Markdown the pane shows, or as that
+  // Markdown typeset. The PDF writer is fetched on the press, so a failure
+  // there is a chunk that didn't load — it has to say so rather than leave a
+  // button that did nothing.
+  const downloads: DownloadFormat[] = [
+    {
+      id: "pdf",
+      label: t("review.downloadPdf"),
+      icon: <FilePdfIcon className="h-4 w-4" />,
+      onSelect: () => {
+        void downloadPdf(doc.name, doc.masked ?? "", {
+          pageNumberOf: t("review.pageNumberOf"),
+        }).catch((err: unknown) => {
+          output.error(
+            `PDF download failed: ${err instanceof Error ? err.message : String(err)}`,
+          );
+          defaultToastStore.push({
+            message: t("review.downloadFailed"),
+            kind: "danger",
+            durationMs: 6000,
+          });
+        });
+      },
+    },
+    {
+      id: "markdown",
+      label: t("review.downloadMarkdown"),
+      icon: <FileMarkdownIcon className="h-4 w-4" />,
+      onSelect: () => downloadMarkdown(doc.name, doc.masked ?? ""),
+    },
+  ];
+
   const allOn = rows.every((r) => r.include);
   const existingTokens = new Set(project.variables.map((v) => v.token));
   void existingTokens;
@@ -453,6 +496,29 @@ export function ReviewPanel({
         <CopyablePane
           title={t("review.output")}
           value={doc.masked ?? ""}
+          className="@container"
+          /* A document extracted from a PDF carries its headings and its bold
+             as Markdown, so the pane shows it the way it was written rather
+             than showing the syntax. The copy button and the download still
+             take the source — what leaves the app is the text, marks and
+             all. */
+          body={
+            doc.markdown && doc.masked ? (
+              <MarkdownText text={doc.masked} className="prose-pane" />
+            ) : undefined
+          }
+          actions={
+            doc.masked ? (
+              <DownloadMenu
+                icon={<DownloadIcon className="h-4 w-4" />}
+                formats={downloads}
+                labels={{
+                  download: t("review.download"),
+                  menu: t("review.downloadMenu"),
+                }}
+              />
+            ) : undefined
+          }
           labels={{
             copy: t("common.copy"),
             copied: t("common.copied"),

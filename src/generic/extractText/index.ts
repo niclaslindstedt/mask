@@ -6,9 +6,16 @@
 export type ExtractedText = {
   text: string;
   kind: "text" | "pdf";
+  /** Whether `text` carries Markdown a reader should render rather than show
+   *  verbatim. A PDF always does — its headings and its bold are written back
+   *  out as Markdown (see `markup.ts`) — and so does a `.md` file. */
+  markdown?: boolean;
   /** Page count, for PDFs. */
   pages?: number;
 };
+
+/** Extensions whose text is already Markdown. */
+const MARKDOWN_EXTENSIONS: readonly string[] = [".md", ".markdown"];
 
 /** Extensions read as plain text. Anything else that isn't a PDF is refused. */
 export const TEXT_EXTENSIONS: readonly string[] = [
@@ -57,7 +64,11 @@ export async function extractTextFromFile(file: File): Promise<ExtractedText> {
     return extractPdfText(await file.arrayBuffer());
   }
   if (isTextFile(file)) {
-    return { text: normalizeNewlines(await file.text()), kind: "text" };
+    return {
+      text: normalizeNewlines(await file.text()),
+      kind: "text",
+      markdown: MARKDOWN_EXTENSIONS.includes(fileExtension(file.name)),
+    };
   }
   throw new UnsupportedFileError(file.name);
 }

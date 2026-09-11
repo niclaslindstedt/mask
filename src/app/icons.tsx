@@ -133,3 +133,58 @@ export function TagIcon({ className }: IconProps) {
     </svg>
   );
 }
+
+/**
+ * A lettered format badge — the shared frame behind `FilePdfIcon` and
+ * `FileMarkdownIcon`, so the two download rows read as one family of format
+ * marks rather than as two unrelated pictures. Ported from the sibling
+ * `notes` app, where the same two rows sit in the same kind of menu.
+ *
+ * The letters get the whole glyph, and the frame is a hairline rather than the
+ * set's usual 2px: at the ~16px these render at, a page-with-a-corner-fold plus
+ * tiny lettering is an unreadable generic page icon, and a 2px border on a
+ * 24-unit box eats the interior the lettering needs.
+ */
+function FormatBadge({
+  className,
+  letters,
+  fontSize,
+}: IconProps & { letters: string; fontSize: number }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+      focusable="false"
+    >
+      <rect x="1" y="4.25" width="22" height="15.5" rx="3" />
+      <text
+        x="12"
+        y="15.4"
+        textAnchor="middle"
+        stroke="none"
+        fill="currentColor"
+        fontSize={fontSize}
+        fontWeight="700"
+        fontFamily="ui-sans-serif, system-ui, sans-serif"
+      >
+        {letters}
+      </text>
+    </svg>
+  );
+}
+
+/** The `PDF` badge — the download menu's PDF row. */
+export function FilePdfIcon({ className }: IconProps) {
+  return <FormatBadge className={className} letters="PDF" fontSize={9} />;
+}
+
+/** The `MD` badge — the download menu's Markdown row. */
+export function FileMarkdownIcon({ className }: IconProps) {
+  return <FormatBadge className={className} letters="MD" fontSize={11} />;
+}

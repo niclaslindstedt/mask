@@ -24,7 +24,14 @@ The app opens in the **General** workspace with no project yet.
    it too. The kind picker ends in **Custom type…**: name the value yourself
    ("Judge") and it masks to `JUDGE1` instead of `NAME1`.
 4. **Confirm and mask** — the masked text appears in the output pane. Press
-   **Copy** and paste it into your LLM.
+   **Copy** and paste it into your LLM, or press **Download** beside it to save
+   it as a PDF or as a Markdown file.
+
+   A document that came from a PDF keeps its headings, its bold and its italics
+   as Markdown, and the output pane shows it formatted rather than showing the
+   `#` and `**` — so what you hand the model still knows which line was a
+   section title.
+
 5. **Restore** — paste the answer into the **Restore** tab; every placeholder
    from the project turns back into its real value. Copy that.
 

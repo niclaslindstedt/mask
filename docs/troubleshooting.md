@@ -25,6 +25,21 @@ table, a form with side-by-side boxes, text flowing around a figure — can stil
 come out ordered oddly or run together. Edit the document text in the intake,
 or copy the part you need and use **Paste text**.
 
+## A PDF's headings or bold text did not survive
+
+Headings are recognised from the size a paragraph is set at, relative to the
+size carrying most of the document's text, and from a short, bold, unpunctuated
+line at that size. A document whose headings are set in the same face and size
+as the body — distinguished only by a colour, a rule, or the space around them
+— has nothing for that to read, and the line stays a paragraph.
+
+Bold and italic come off the face the producer drew each run in. A PDF whose
+fonts carry no descriptor and no telling name (a subsetted `BCDEEE+Garamond`
+rather than a `TimesNewRomanPS-BoldMT`) leaves the run unmarked, and a document
+set _wholly_ in one bold face is deliberately left unmarked too — bold says
+nothing when everything is bold. Nothing is lost either way: the words are all
+there, and you can type the `#` or the `**` in yourself.
+
 ## A PDF fails to read on an older browser
 
 Text extraction runs on pdf.js, which needs a browser from late 2023 or newer

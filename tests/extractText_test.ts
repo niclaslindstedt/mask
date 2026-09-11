@@ -27,8 +27,18 @@ describe("extractText routing", () => {
     await expect(extractTextFromFile(file)).resolves.toEqual({
       text: "hej\nvärlden\nslut",
       kind: "text",
+      markdown: false,
     });
     expect(normalizeNewlines("a\r\nb")).toBe("a\nb");
+  });
+
+  it("marks a Markdown file as Markdown", async () => {
+    const file = new File(["# Rubrik\n\ntext"], "a.md", { type: "" });
+    await expect(extractTextFromFile(file)).resolves.toEqual({
+      text: "# Rubrik\n\ntext",
+      kind: "text",
+      markdown: true,
+    });
   });
 
   it("refuses an unsupported file", async () => {

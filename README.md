@@ -80,14 +80,18 @@ onto the intake (or press **Paste text**), review what was found, press
   or **Paste text**. PDFs are read in the browser and laid back out into
   paragraphs — wrapped lines rejoined, hyphenated words put back together,
   running headers dropped, footers read in their place; a scanned PDF needs OCR
-  first.
+  first. The page's own structure comes with it: headings, bold and italics are
+  written back out as Markdown, so the model on the other end can still tell a
+  section title from a sentence.
 - **Review** — every candidate has a checkbox, a kind, and the placeholder it
   will get (or the one it already has). Untick a false positive, change a kind,
   type a missed value, or select text in the preview and press **Mask “…”**.
   Clicking a highlight toggles it. Every kind picker ends in **Custom type…**,
   which takes a name of your own for that value.
-- **Confirm and mask** — produces the masked text in the output pane, with a
-  copy button. Confirm again after changes to update it.
+- **Confirm and mask** — produces the masked text in the output pane, shown
+  formatted rather than as its own Markdown, with a copy button and a
+  **Download** menu beside it (PDF or Markdown file). Confirm again after
+  changes to update it.
 - **Placeholders** — the project's table of placeholder ↔ value ↔ kind; add one
   by hand, remove one, change a kind, copy the table, pick the placeholder
   style for this project, and un-reject values.
