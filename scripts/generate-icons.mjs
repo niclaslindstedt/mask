@@ -1,10 +1,11 @@
 #!/usr/bin/env node
 // Generate the PWA install icons and the social-preview image from the same
-// geometry as public/icons/icon.svg — the Mask mark: a solid redaction bar
-// between two lines of text, in an amber gradient on the app's dark surface.
-// Pure Node (zlib + a minimal PNG encoder), so the pipeline needs no native
-// image dependencies. Rerun with `npm run icons` / `make icons` after changing
-// the mark.
+// geometry as public/icons/icon.svg — the Mask mark: three asterisks in a row,
+// a masked password, stroked in a green gradient on the app's dark surface, in
+// the single-glyph style shared with the sibling contacts app. Pure Node (zlib
+// + a minimal PNG encoder), so the pipeline needs no native image
+// dependencies. Rerun with `npm run icons` / `make icons` after changing the
+// mark.
 import { deflateSync } from "node:zlib";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -14,11 +15,12 @@ const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const iconsDir = join(root, "public", "icons");
 mkdirSync(iconsDir, { recursive: true });
 
-// The app look's surface (see src/app/look.ts) and the mark's amber gradient.
-// Kept in lockstep with the <linearGradient> stops in public/icons/icon.svg.
+// The app look's surface (see src/app/look.ts) and the mark's green gradient —
+// the family hue the sibling contacts app wears. Kept in lockstep with the
+// <linearGradient> stops in public/icons/icon.svg.
 const BG = [11, 13, 16]; // #0b0d10
-const GRAD_TOP = [252, 211, 77]; // #fcd34d
-const GRAD_BOT = [245, 158, 11]; // #f59e0b
+const GRAD_FROM = [110, 231, 183]; // #6ee7b7
+const GRAD_TO = [52, 211, 153]; // #34d399
 
 // --- minimal PNG encoder ----------------------------------------------------
 
@@ -90,31 +92,54 @@ function encodePng(width, height, rgba) {
 
 // --- the mark ----------------------------------------------------------------
 
-// The mark's geometry in the SVG's 64-unit coordinates mapped to unit space
-// (read straight off public/icons/icon.svg — change one and change the other).
+// The mark's geometry, written in the SVG's own 64-unit coordinates and mapped
+// into unit space, so the numbers below read straight off public/icons/icon.svg
+// — change one and change the other. `u` is that mapping.
 const u = (v) => v / 64;
 
-// Two text lines drawn as rounded strokes (stroke-width 6), a full-width one
-// above and a shorter one below, and a solid rounded redaction bar between
-// them with a short stroke trailing it.
-const HALF_STROKE = u(3);
-const LINES = [
-  [u(12), u(18), u(52), u(18)], // top line
-  [u(12), u(46), u(38), u(46)], // bottom line
-  [u(45), u(32), u(52), u(32)], // the short run after the bar
-];
-// The bar: <rect x="12" y="25" width="26" height="14" rx="4">.
-const BAR = { x0: u(12), y0: u(25), x1: u(38), y1: u(39), r: u(4) };
+// Stroke weight (SVG stroke-width="3.2"); the outline is every point within half
+// of it of a spoke's centre line. Round caps come for free — a distance-to-
+// segment already rounds off at the ends.
+const HALF_STROKE = u(1.6);
 
-const GRAD_Y0 = u(18) - HALF_STROKE;
-const GRAD_Y1 = u(46) + HALF_STROKE;
+// Three asterisks in a row: six-spoke stars of arm radius 7 centred on y 32
+// at x 15 / 32 / 49, each drawn as three segments crossing at its centre. The
+// spokes sit at 90° / 30° / 150°, so one points straight up the way a
+// typographic asterisk does; a spoke tip is therefore (±r·cos30, ∓r·sin30)
+// from the centre, or straight above/below it.
+const STAR_R = u(7);
+const STAR_DX = u(6.06); // r · cos 30°
+const STAR_DY = u(3.5); // r · sin 30°
+const STAR_Y = u(32);
+const SEGMENTS = [u(15), u(32), u(49)].flatMap((cx) => [
+  [cx, STAR_Y - STAR_R, cx, STAR_Y + STAR_R], // the upright spoke
+  [cx - STAR_DX, STAR_Y - STAR_DY, cx + STAR_DX, STAR_Y + STAR_DY],
+  [cx - STAR_DX, STAR_Y + STAR_DY, cx + STAR_DX, STAR_Y - STAR_DY],
+]);
 
-function markInk(y) {
-  const t = Math.max(0, Math.min(1, (y - GRAD_Y0) / (GRAD_Y1 - GRAD_Y0)));
+// The gradient runs on the diagonal of the mark's bounding box — the top-left
+// of the first star's caps to the bottom-right of the last one's — so the row
+// shades left-to-right rather than over its own short height. Matches the
+// userSpaceOnUse x1/y1 → x2/y2 span in the SVG.
+const GRAD_A = [u(15) - STAR_DX - HALF_STROKE, STAR_Y - STAR_R - HALF_STROKE];
+const GRAD_B = [u(49) + STAR_DX + HALF_STROKE, STAR_Y + STAR_R + HALF_STROKE];
+
+// The mark's ink at unit-space (x, y): the point's projection onto that
+// gradient axis, interpolated between the two stops.
+function markInk(x, y) {
+  const vx = GRAD_B[0] - GRAD_A[0];
+  const vy = GRAD_B[1] - GRAD_A[1];
+  const t = Math.max(
+    0,
+    Math.min(
+      1,
+      ((x - GRAD_A[0]) * vx + (y - GRAD_A[1]) * vy) / (vx * vx + vy * vy),
+    ),
+  );
   return [
-    GRAD_TOP[0] + (GRAD_BOT[0] - GRAD_TOP[0]) * t,
-    GRAD_TOP[1] + (GRAD_BOT[1] - GRAD_TOP[1]) * t,
-    GRAD_TOP[2] + (GRAD_BOT[2] - GRAD_TOP[2]) * t,
+    GRAD_FROM[0] + (GRAD_TO[0] - GRAD_FROM[0]) * t,
+    GRAD_FROM[1] + (GRAD_TO[1] - GRAD_FROM[1]) * t,
+    GRAD_FROM[2] + (GRAD_TO[2] - GRAD_FROM[2]) * t,
   ];
 }
 
@@ -129,29 +154,15 @@ function distSegment(px, py, ax, ay, bx, by) {
   return Math.hypot(px - ax - t * vx, py - ay - t * vy);
 }
 
-// Signed distance to the rounded bar (negative inside).
-function barDist(px, py) {
-  const cx = (BAR.x0 + BAR.x1) / 2;
-  const cy = (BAR.y0 + BAR.y1) / 2;
-  const hw = (BAR.x1 - BAR.x0) / 2 - BAR.r;
-  const hh = (BAR.y1 - BAR.y0) / 2 - BAR.r;
-  const qx = Math.abs(px - cx) - hw;
-  const qy = Math.abs(py - cy) - hh;
-  return (
-    Math.hypot(Math.max(qx, 0), Math.max(qy, 0)) +
-    Math.min(Math.max(qx, qy), 0) -
-    BAR.r
-  );
-}
-
-// Coverage of the mark at unit-space (x, y): the stroked lines plus the
-// filled bar, antialiased straight from the signed distances.
+// How much of the pixel at unit-space (x, y) the stroke covers, given how many
+// pixels one unit spans. Antialiasing straight from the signed distance to the
+// nearest spoke — exact for a stroke in a way supersampling only approximates,
+// which is what keeps a 1 px spoke legible at favicon sizes.
 function markCoverage(x, y, pxPerUnit) {
   let d = Infinity;
-  for (const [ax, ay, bx, by] of LINES) {
+  for (const [ax, ay, bx, by] of SEGMENTS) {
     d = Math.min(d, distSegment(x, y, ax, ay, bx, by) - HALF_STROKE);
   }
-  d = Math.min(d, barDist(x, y));
   return Math.max(0, Math.min(1, 0.5 - d * pxPerUnit));
 }
 // Render size×size RGBA. The mark carries its own margin inside the 64-unit
@@ -184,7 +195,7 @@ function renderIcon(size, { pad = 0, radius = 0.2 } = {}) {
       const sy = ((py + 0.5) / size - pad) / (1 - 2 * pad);
       const hit = markCoverage(sx, sy, pxPerUnit);
       const [br, bg2, bb] = BG;
-      const [fr, fg2, fb] = markInk(sy);
+      const [fr, fg2, fb] = markInk(sx, sy);
       rgba[i] = Math.round(br + (fr - br) * hit);
       rgba[i + 1] = Math.round(bg2 + (fg2 - bg2) * hit);
       rgba[i + 2] = Math.round(bb + (fb - bb) * hit);
@@ -204,7 +215,7 @@ function renderOg() {
   const markX = 120;
   const markY = (h - markSize) / 2;
   // The row bars pick up a mid-gradient accent so they sit with the mark.
-  const BAR = markInk(0.5);
+  const BAR = markInk(0.5, 0.5);
   const rows = [
     { x: 640, y: 200, w: 380, h: 26, a: 1 },
     { x: 640, y: 260, w: 300, h: 18, a: 0.55 },
@@ -227,7 +238,7 @@ function renderOg() {
         const sy = (py + 0.5 - markY) / markSize;
         const hit = markCoverage(sx, sy, markSize);
         if (hit > 0) {
-          const ink = markInk(sy);
+          const ink = markInk(sx, sy);
           cr = Math.round(cr + (ink[0] - cr) * hit);
           cg = Math.round(cg + (ink[1] - cg) * hit);
           cb = Math.round(cb + (ink[2] - cb) * hit);
