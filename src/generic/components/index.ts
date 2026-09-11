@@ -3,11 +3,6 @@ export { CopyablePane, type CopyablePaneLabels } from "./CopyablePane.tsx";
 export { FileDropZone, type FileDropZoneLabels } from "./FileDropZone.tsx";
 export { GlyphButton, type GlyphButtonProps } from "./GlyphButton.tsx";
 export {
-  SafeFloatingPanel,
-  type SafeFloatingPanelProps,
-} from "./SafeFloatingPanel.tsx";
-export { SafeSelect, type SelectOption } from "./SafeSelect.tsx";
-export {
   CREATE_OPTION,
   SelectOrCreate,
   type SelectOrCreateLabels,

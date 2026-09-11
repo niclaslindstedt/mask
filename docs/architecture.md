@@ -19,10 +19,9 @@ src/
 │   ├── checkDigit.ts     Luhn
 │   ├── extractText/      file → text (PDF through a lazy pdf.js chunk,
 │   │                     laid back out into paragraphs by `layout.ts`)
-│   ├── safeViewport.ts   the band a floating panel may land in (safe area + top chrome)
 │   ├── collapseOnScroll.ts  collapse a scroll container's header once it is scrolled past
-│   └── components/       FileDropZone, StringListEditor, SpanText, CopyablePane,
-│                         SafeFloatingPanel, SafeSelect, SelectOrCreate
+│   └── components/       FileDropZone, StringListEditor, GlyphButton, SpanText,
+│                         CopyablePane, SelectOrCreate
 └── app/                the domain
     ├── types.ts          Project / Doc / Variable / GlobalRules
     ├── detectors/        the Swedish-context detectors + generated dictionaries
@@ -55,19 +54,18 @@ detectors, the masking pipeline, the rules, and the screens.
 
 ### Where a dropdown is allowed to land
 
-The framework's floating geometry (`computeFloatingRect`) takes the visible
-band as an argument, and its own hook fills that in from the raw visual
-viewport. On an installed iOS PWA that band starts at the top of the screen —
-under the clock, inside `env(safe-area-inset-top)` — so a menu with no room
-below its trigger flips upwards and fills the status bar and the screen's top
-bar.
+The framework places every floating panel inside the visible band _minus_ the
+device's safe-area insets, so a menu with no room below its trigger flips
+upwards without running under an iOS status bar or home indicator. It cannot
+know an app's own chrome by name, so anything pinned to a screen edge marks
+itself `data-floating-edge="top"` and panels stop there too — here that is the
+project header and the Settings header, measured live so a header that wraps on
+a narrow screen stays covered.
 
-`src/generic/safeViewport.ts` keeps the framework's geometry and replaces only
-the band: the visual viewport shrunk by the safe-area insets and by anything
-the app marks `data-floating-edge="top"` (today the project header and the
-Settings header). `SafeFloatingPanel` and `SafeSelect` are the framework's
-`FloatingPanel` and `SelectPicker` over that band; every menu in the app goes
-through them.
+That band used to be this app's problem (`src/generic/safeViewport.ts` and a
+pair of components over it, shipped in 0.1.0); framework 3.3.1 owns it, which
+also covers the panels the app never placed itself — the sidebar's long-press
+row menu among them.
 
 ## The masking pipeline
 
