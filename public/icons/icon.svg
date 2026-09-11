@@ -1,18 +1,40 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
-  <!-- The Mask mark: two text lines with a solid redaction bar between them,
-       in the app's amber on its dark surface. scripts/generate-icons.mjs
-       rasterises this same geometry for the PWA icons and the OG image. -->
+  <!-- The Mask mark: three asterisks in a row — a masked password, drawn as
+       stroked six-spoke stars in the family's green gradient on the app's dark
+       surface. The 64-unit viewBox, the round caps and joins, the #6ee7b7 →
+       #34d399 ink and the #0b0d10 plate are the same single-glyph language the
+       sibling contacts app wears; only the glyph differs. The stroke is 3.2
+       units rather than the family's 6, because three glyphs share the width
+       one normally gets.
+
+       Geometry: each star has arm radius 7 around y 32, with its spokes at
+       90° / 30° / 150° so one points straight up the way a typographic
+       asterisk does — which also means no spoke reaches sideways, and the
+       neighbours can sit 17 units apart (centres x 15 / 32 / 49) with their
+       caps still 1.7 units clear. The mark's outer bounds run x 7.34→56.66 and
+       y 23.4→40.6: a wide, short band, so the side margin is the tight one.
+       The maskable icon's further 10% inset keeps every cap inside the W3C
+       80%-diameter safe circle (the far caps land at 78% of its radius). Redo
+       that sum before growing it.
+
+       The PNG install icons, the favicon.ico, and the Open Graph card are
+       generated from this same geometry by scripts/generate-icons.mjs — edit
+       both together and rerun `make icons`. -->
   <defs>
-    <linearGradient id="g" gradientUnits="userSpaceOnUse" x1="0" y1="15" x2="0" y2="49">
-      <stop offset="0" stop-color="#fcd34d"/>
-      <stop offset="1" stop-color="#f59e0b"/>
+    <!-- userSpaceOnUse across the mark's exact bounding box, on the diagonal,
+         so the three stars share one continuous gradient and the row shades
+         left-to-right instead of each star restarting an invisibly short
+         vertical ramp. Kept in lockstep with GRAD_A / GRAD_B in the generator. -->
+    <linearGradient id="mark" x1="7.34" y1="23.4" x2="56.66" y2="40.6" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#6ee7b7" />
+      <stop offset="100%" stop-color="#34d399" />
     </linearGradient>
   </defs>
-  <rect width="64" height="64" rx="13" fill="#0b0d10"/>
-  <g stroke="url(#g)" stroke-width="6" stroke-linecap="round" fill="none">
-    <path d="M12 18H52"/>
-    <path d="M12 46H38"/>
-    <path d="M45 32H52"/>
+  <!-- rx is 20% of the side, matching the generator's default `radius: 0.2`. -->
+  <rect width="64" height="64" rx="12.8" fill="#0b0d10" />
+  <g fill="none" stroke="url(#mark)" stroke-width="3.2" stroke-linecap="round">
+    <path d="M15 25V39M8.94 28.5l12.12 7M8.94 35.5l12.12-7" />
+    <path d="M32 25V39M25.94 28.5l12.12 7M25.94 35.5l12.12-7" />
+    <path d="M49 25V39M42.94 28.5l12.12 7M42.94 35.5l12.12-7" />
   </g>
-  <rect x="12" y="25" width="26" height="14" rx="4" fill="url(#g)"/>
 </svg>

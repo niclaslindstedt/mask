@@ -1,33 +1,27 @@
 // SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 import type { IconProps } from "@niclaslindstedt/oss-framework/components";
 
-// The app's own mark: a redaction bar over a line of text — the same
-// geometry `public/icons/icon.svg` and `scripts/generate-icons.mjs` draw.
+// The app's own mark: three asterisks in a row, a masked password — the same
+// glyph `public/icons/icon.svg` and `scripts/generate-icons.mjs` draw, redrawn
+// in the icon set's 24-unit box (each star has arm radius 2.8 on y 12, spokes
+// at 90° / 30° / 150°, centres 7.4 apart). The stroke is lighter than the set's
+// 2 because three glyphs share the width one normally gets.
 export function MaskIcon({ className }: IconProps) {
   return (
     <svg
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth="2"
+      strokeWidth="1.6"
       strokeLinecap="round"
       strokeLinejoin="round"
       className={className}
       aria-hidden="true"
       focusable="false"
     >
-      <path d="M4 7h16" />
-      <rect
-        x="4"
-        y="10.5"
-        width="10"
-        height="3.5"
-        rx="1"
-        fill="currentColor"
-        stroke="none"
-      />
-      <path d="M17 12h3" />
-      <path d="M4 17h9" />
+      <path d="M4.6 9.2v5.6M2.18 10.6l4.84 2.8M2.18 13.4l4.84-2.8" />
+      <path d="M12 9.2v5.6M9.58 10.6l4.84 2.8M9.58 13.4l4.84-2.8" />
+      <path d="M19.4 9.2v5.6M16.98 10.6l4.84 2.8M16.98 13.4l4.84-2.8" />
     </svg>
   );
 }

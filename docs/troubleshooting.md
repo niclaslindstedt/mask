@@ -50,14 +50,17 @@ without it — copy the text out of the PDF and use **Paste text**.
 
 The name detector anchors on dictionaries of common Swedish given names and
 surnames plus surname endings; a rare foreign name, a nickname, or a name that
-is also an everyday word at the start of a sentence can slip through. Select
-it in the preview and press **Mask “…”**, or type it into the add-a-value
-field. To catch it everywhere in future, add it to **Rules → Always mask**.
+is also an everyday word at the start of a sentence can slip through. Mark it
+in the preview and press **Mask**, or type it into the add-a-value field. To
+catch it everywhere in future, press **Always mask** on the marked text
+instead — it masks the value here and blacklists it for every project.
 
 ## Something is masked that should not be
 
 Untick it in the review (the project remembers the rejection), or add it to
-**Rules → Never mask** to stop it across every project. A whole detector that
+**Rules → Never mask** to stop it across every project — the row's whitelist
+button and **Never mask** on marked text do the same thing without leaving the
+review. A whole detector that
 misfires on your documents can be switched off in Settings → Masking.
 
 ## A placeholder type I added is gone

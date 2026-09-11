@@ -12,6 +12,7 @@ import {
   CloseIcon,
   CodeIcon,
   CogIcon,
+  FloatingPanel,
   MenuIcon,
   Modal,
   PaletteIcon,
@@ -26,7 +27,6 @@ import {
 } from "@niclaslindstedt/oss-framework/theme";
 import type { PwaUpdate } from "@niclaslindstedt/oss-framework/pwa";
 
-import { SafeFloatingPanel } from "../generic/components/index.ts";
 import { useT } from "./i18n/index.ts";
 import { APP_LOOK } from "./look.ts";
 import { DEFAULT_SETTINGS, type AppSettings } from "./useAppSettings.ts";
@@ -38,9 +38,8 @@ import {
   MaskingTab,
 } from "./settings/tabs.tsx";
 
-// The app's tabbed Settings modal over the framework's `Modal` and the
-// safe-area-aware `SafeFloatingPanel`. On desktop a vertical tab rail owns
-// section selection; on
+// The app's tabbed Settings modal over the framework's `Modal` and
+// `FloatingPanel`. On desktop a vertical tab rail owns section selection; on
 // mobile a header burger opens the same sections as a menu. Appearance edits
 // preview live; the other tabs stage a draft committed on Save.
 
@@ -171,7 +170,7 @@ export function SettingsModal({
               </span>
               <span className="min-w-0">{t(activeDef.labelKey)}</span>
             </button>
-            <SafeFloatingPanel
+            <FloatingPanel
               open={menuOpen}
               onClose={() => setMenuOpen(false)}
               triggerRef={menuRef}
@@ -205,7 +204,7 @@ export function SettingsModal({
                   );
                 })}
               </div>
-            </SafeFloatingPanel>
+            </FloatingPanel>
           </div>
           <h2
             id="settings-title"

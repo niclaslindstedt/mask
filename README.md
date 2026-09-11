@@ -18,8 +18,9 @@ to restore the real values. Nothing leaves your browser.
   run in the browser; there is no server, no account, no upload. The LLM only
   ever sees `NAME1 bor på STREET1 i CITY1`.
 - **You confirm every replacement.** Detectors propose; a review with a
-  checkbox per value, a kind picker, and a click-to-toggle preview decides.
-  Add what was missed by selecting it.
+  checkbox per value, a kind picker, and a click-to-toggle preview decides —
+  and any text you mark there can be masked, blacklisted, or whitelisted in one
+  press.
 - **Projects remember.** The placeholders a project has minted are reused in
   every later document, so the same person is the same placeholder in the
   letter and in the reply — and the answer restores cleanly.
@@ -85,9 +86,11 @@ onto the intake (or press **Paste text**), review what was found, press
   section title from a sentence.
 - **Review** — every candidate has a checkbox, a kind, and the placeholder it
   will get (or the one it already has). Untick a false positive, change a kind,
-  type a missed value, or select text in the preview and press **Mask “…”**.
-  Clicking a highlight toggles it. Every kind picker ends in **Custom type…**,
-  which takes a name of your own for that value.
+  type a missed value, or mark it in the preview: marking text offers **Mask**,
+  **Always mask** and **Never mask** on the spot. Clicking a highlight toggles
+  it. Every kind picker ends in **Custom type…**, which takes a name of your own
+  for that value. **Read source** opens the document unmarked, to read rather
+  than review.
 - **Confirm and mask** — produces the masked text in the output pane, shown
   formatted rather than as its own Markdown, with a copy button and a
   **Download** menu beside it (PDF or Markdown file). Confirm again after
@@ -147,8 +150,8 @@ the app on sample projects already holding them.
   Install above.
 - **A PDF adds with "contains no text"** — it is a scanned image; OCR it or
   paste the text.
-- **A name was not detected** — select it in the preview and mask it, or
-  blacklist it.
+- **A name was not detected** — mark it in the preview and press **Mask**, or
+  **Always mask** to blacklist it everywhere.
 - More in [docs/troubleshooting.md](docs/troubleshooting.md).
 
 ## Documentation

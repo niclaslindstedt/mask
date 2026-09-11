@@ -9,11 +9,6 @@ export { FileDropZone, type FileDropZoneLabels } from "./FileDropZone.tsx";
 export { GlyphButton, type GlyphButtonProps } from "./GlyphButton.tsx";
 export { MarkdownText } from "./MarkdownText.tsx";
 export {
-  SafeFloatingPanel,
-  type SafeFloatingPanelProps,
-} from "./SafeFloatingPanel.tsx";
-export { SafeSelect, type SelectOption } from "./SafeSelect.tsx";
-export {
   CREATE_OPTION,
   SelectOrCreate,
   type SelectOrCreateLabels,

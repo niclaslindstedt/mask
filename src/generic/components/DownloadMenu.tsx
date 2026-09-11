@@ -1,7 +1,10 @@
 // SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 import { useRef, useState, type ReactNode } from "react";
 
-import type { FloatingPlacement } from "@niclaslindstedt/oss-framework/components";
+import {
+  FloatingPanel,
+  type FloatingPlacement,
+} from "@niclaslindstedt/oss-framework/components";
 // `ActionMenuList` is a published subpath of its own — the framework's barrel
 // re-exports only its `RowAction` type, not the list itself.
 import {
@@ -10,7 +13,6 @@ import {
 } from "@niclaslindstedt/oss-framework/components/ActionMenuList";
 
 import { GlyphButton } from "./GlyphButton.tsx";
-import { SafeFloatingPanel } from "./SafeFloatingPanel.tsx";
 
 // A download button that offers a choice of formats: one glyph in a row of
 // header controls, opening a menu of the ways the thing beside it can leave
@@ -18,8 +20,8 @@ import { SafeFloatingPanel } from "./SafeFloatingPanel.tsx";
 // passes the formats it has and this decides which of the two it is.
 //
 // The menu itself is the framework's (`ActionMenuList` inside a
-// `SafeFloatingPanel`), so it keeps the keyboard navigation, the dismissal and
-// the safe-area placement every other floating menu in the app has.
+// `FloatingPanel`), so it keeps the keyboard navigation, the dismissal and the
+// safe-area placement every other floating menu in the app has.
 
 export type DownloadFormat = {
   /** Stable id, for the key and for the caller's own bookkeeping. */
@@ -81,7 +83,7 @@ export function DownloadMenu({
         onClick={press}
         disabled={disabled}
       />
-      <SafeFloatingPanel
+      <FloatingPanel
         open={open}
         onClose={() => setOpen(false)}
         triggerRef={triggerRef}
@@ -95,7 +97,7 @@ export function DownloadMenu({
             action.onSelect();
           }}
         />
-      </SafeFloatingPanel>
+      </FloatingPanel>
     </span>
   );
 }

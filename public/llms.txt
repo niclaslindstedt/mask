@@ -16,6 +16,8 @@
 - A PDF's headings, bold and italics survive as Markdown, shown formatted
 - Download the masked text as a PDF or a Markdown file
 - Review every candidate, fix its kind, add what was missed, confirm
+- Mark text in a document to mask it, always mask it, or never mask it again
+- Read any document's source text unmarked, beside the review
 - Projects remember placeholders so the same person gets the same one everywhere
 - Global always-mask / never-mask lists and custom regex patterns
 - Placeholder styles: AAA, aaa, $1, NAME1, [NAME 1], {{name1}}
