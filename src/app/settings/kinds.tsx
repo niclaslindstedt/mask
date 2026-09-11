@@ -4,10 +4,10 @@ import { useState } from "react";
 import {
   Section,
   SegmentedControl,
+  SelectPicker,
   TrashIcon,
 } from "@niclaslindstedt/oss-framework/components";
 
-import { SafeSelect } from "../../generic/components/index.ts";
 import {
   placeholderExamples,
   type PlaceholderStyle,
@@ -88,7 +88,7 @@ export function PlaceholderTypesSection({
                 </span>
               </span>
               <span className="w-36 shrink-0">
-                <SafeSelect<KindScope>
+                <SelectPicker<KindScope>
                   value={kind.scope}
                   options={scopeOptions}
                   onChange={(next) => kinds.setScope(kind.id, kind.scope, next)}

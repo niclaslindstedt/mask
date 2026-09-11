@@ -7,6 +7,7 @@ import {
   ExternalLinkIcon,
   FolderIcon,
   HeartIcon,
+  FloatingPanel,
   HelpCircleIcon,
   InlineEditRow,
   PencilIcon,
@@ -31,7 +32,6 @@ import {
   type PwaUpdateCheckResult,
 } from "@niclaslindstedt/oss-framework/pwa";
 
-import { SafeFloatingPanel } from "../generic/components/index.ts";
 import {
   PLAIN_TEXT_KEYBOARD_PROPS,
   primeSoftKeyboard,
@@ -347,7 +347,7 @@ export function SideMenuContent({
         </div>
       )}
 
-      <SafeFloatingPanel
+      <FloatingPanel
         open={aboutOpen}
         onClose={() => setAboutOpen(false)}
         triggerRef={aboutRef}
@@ -372,7 +372,7 @@ export function SideMenuContent({
         >
           {t("menu.source")}
         </FooterLink>
-      </SafeFloatingPanel>
+      </FloatingPanel>
 
       <ConfirmDialog
         open={deleting !== null}
