@@ -40,6 +40,7 @@ import { logStore } from "./app/log.ts";
 import { cacheIdForBase } from "./app/pwa.ts";
 import { useAppSettings } from "./app/useAppSettings.ts";
 import { useCustomKinds } from "./app/useCustomKinds.ts";
+import { useFolderStorage } from "./app/useFolderStorage.ts";
 import { sweepSourceFiles } from "./app/sourceFiles.ts";
 import { localDocBackend, useMaskStore } from "./app/useMaskStore.ts";
 import { useNamespaces } from "./app/useNamespaces.ts";
@@ -78,6 +79,11 @@ export function App() {
   useApplyTheme(appearance);
 
   const ns = useNamespaces();
+  // Settings → Storage: the document normally lives in this device's
+  // localStorage, but the user can hand it a folder on their own disk instead
+  // (still local — see `useFolderStorage`). While a folder is the storage it
+  // supplies the store's backend.
+  const folder = useFolderStorage(ns.activeSlug);
   // The Developer tab's "Test data" toggle: while it is on, an in-memory
   // backend full of sample projects replaces the real localStorage one, so a
   // developer can poke at a populated app without touching their own projects
@@ -86,8 +92,8 @@ export function App() {
   const backend = useMemo(() => {
     const dev = seedBackends();
     if (dev && devSeed.testData) return dev.createTestDataBackend();
-    return localDocBackend;
-  }, [devSeed.testData]);
+    return folder.backend ?? localDocBackend;
+  }, [devSeed.testData, folder.backend]);
   const store = useMaskStore(ns.activeSlug, backend);
   const rules = useRules();
   // The user's own placeholder types: the global list plus this workspace's.
@@ -222,7 +228,15 @@ export function App() {
       </Sidebar>
 
       <main className="relative flex min-w-0 flex-1 flex-col overflow-hidden">
-        {view === "rules" ? (
+        {/* A folder read is a few milliseconds off a local disk, but it decides
+            which document the store adopts — so the working surface waits for
+            it rather than letting an edit land on a copy about to be replaced. */}
+        {!folder.ready ? (
+          <div className="flex flex-1 flex-col items-center justify-center gap-3 p-6 text-muted">
+            <SpinnerIcon className="h-6 w-6 animate-spin text-accent" />
+            <p className="text-sm">{t("settings.storage.opening")}</p>
+          </div>
+        ) : view === "rules" ? (
           <RulesScreen rules={rules} kinds={kinds} />
         ) : project ? (
           <ProjectScreen
@@ -255,6 +269,7 @@ export function App() {
             commitSettings={setSettings}
             kinds={kinds}
             workspaceName={ns.activeNamespace.name}
+            folder={folder}
             pwa={pwa}
           />
         </Suspense>

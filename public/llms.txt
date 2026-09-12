@@ -7,6 +7,7 @@
 > details, and restores the details in the answer. Nothing leaves the browser.
 
 - App: https://mask.niclaslindstedt.se/
+- Privacy policy: https://mask.niclaslindstedt.se/privacy/
 - Source: https://github.com/niclaslindstedt/mask
 - Framework: https://github.com/niclaslindstedt/oss-framework
 
@@ -22,4 +23,5 @@
 - Global always-mask / never-mask lists and custom regex patterns
 - Placeholder styles: AAA, aaa, $1, NAME1, [NAME 1], {{name1}}
 - Paste the LLM's answer back and restore the real values
+- Keep your projects in this browser, or as JSON files in a folder you pick
 - Workspaces, themes, English/Swedish UI, installable offline PWA

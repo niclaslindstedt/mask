@@ -12,6 +12,7 @@ import {
   CloseIcon,
   CodeIcon,
   CogIcon,
+  DatabaseIcon,
   FloatingPanel,
   MenuIcon,
   Modal,
@@ -31,19 +32,22 @@ import { useT } from "./i18n/index.ts";
 import { APP_LOOK } from "./look.ts";
 import { DEFAULT_SETTINGS, type AppSettings } from "./useAppSettings.ts";
 import type { CustomKindsStore } from "./useCustomKinds.ts";
+import type { FolderStorage } from "./useFolderStorage.ts";
 import {
   DeveloperTab,
   GeneralTab,
   LogsTab,
   MaskingTab,
 } from "./settings/tabs.tsx";
+import { StorageTab } from "./settings/storage.tsx";
 
 // The app's tabbed Settings modal over the framework's `Modal` and
 // `FloatingPanel`. On desktop a vertical tab rail owns section selection; on
 // mobile a header burger opens the same sections as a menu. Appearance edits
 // preview live; the other tabs stage a draft committed on Save.
 
-type TabId = "general" | "appearance" | "masking" | "developer" | "logs";
+type TabId =
+  "general" | "appearance" | "masking" | "storage" | "developer" | "logs";
 type TKey = Parameters<ReturnType<typeof useT>>[0];
 type TabDef = { id: TabId; labelKey: TKey; icon: (p: IconProps) => ReactNode };
 
@@ -51,6 +55,7 @@ const TABS: TabDef[] = [
   { id: "general", labelKey: "settings.tabs.general", icon: SlidersIcon },
   { id: "appearance", labelKey: "settings.tabs.appearance", icon: PaletteIcon },
   { id: "masking", labelKey: "settings.tabs.masking", icon: ShieldIcon },
+  { id: "storage", labelKey: "settings.tabs.storage", icon: DatabaseIcon },
   { id: "developer", labelKey: "settings.tabs.developer", icon: CodeIcon },
   { id: "logs", labelKey: "settings.tabs.logs", icon: ScrollTextIcon },
 ];
@@ -66,6 +71,8 @@ type Props = {
   /** The active workspace's name — the Masking tab says which one a
    *  workspace-scoped placeholder type belongs to. */
   workspaceName: string;
+  /** Where the document is stored — the Storage tab drives it live. */
+  folder: FolderStorage;
   pwa: PwaUpdate;
 };
 
@@ -78,6 +85,7 @@ export function SettingsModal({
   commitSettings,
   kinds,
   workspaceName,
+  folder,
   pwa,
 }: Props) {
   const t = useT();
@@ -259,6 +267,7 @@ export function SettingsModal({
               workspaceName={workspaceName}
             />
           )}
+          {activeTab === "storage" && <StorageTab folder={folder} />}
           {activeTab === "developer" && <DeveloperTab pwa={pwa} />}
           {activeTab === "logs" && <LogsTab />}
         </div>

@@ -15,6 +15,7 @@ import {
   RedoIcon,
   RowActionMenu,
   SearchIcon,
+  ShieldIcon,
   SparklesIcon,
   SwipeableRow,
   TrashIcon,
@@ -53,6 +54,8 @@ const ABOUT_PLACEMENT: FloatingPlacement = {
 };
 
 const SOURCE_URL = "https://github.com/niclaslindstedt/mask";
+/** The standalone privacy policy the build emits beside the app shell. */
+const PRIVACY_URL = `${import.meta.env.BASE_URL}privacy/`;
 const DONATE_URL = import.meta.env.VITE_DONATE_URL ?? "";
 const BUILD_LABEL = `v${__BUILD_LABEL__}`;
 
@@ -363,6 +366,16 @@ export function SideMenuContent({
         >
           {t("menu.whatsNew")}
         </FooterRow>
+        {/* Same-origin, so it opens in place — the policy is a page of this
+            site (`/privacy/`), not an outbound link. */}
+        <FooterLink
+          icon={<ShieldIcon className="h-5 w-5" />}
+          href={PRIVACY_URL}
+          sublabel={t("menu.privacySublabel")}
+          onClick={() => setAboutOpen(false)}
+        >
+          {t("menu.privacy")}
+        </FooterLink>
         <FooterLink
           icon={<ExternalLinkIcon className="h-5 w-5" />}
           href={SOURCE_URL}

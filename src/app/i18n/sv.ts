@@ -45,6 +45,8 @@ export const sv: Catalog = {
     about: "Om",
     whatsNew: "Nyheter",
     source: "Källkod",
+    privacy: "Integritetspolicy",
+    privacySublabel: "Inget lämnar din webbläsare",
     settings: "Inställningar",
     checkUpdates: "Sök efter uppdateringar",
     checkingUpdates: "Söker…",
@@ -308,8 +310,42 @@ export const sv: Catalog = {
       general: "Allmänt",
       appearance: "Utseende",
       masking: "Maskering",
+      storage: "Lagring",
       developer: "Utvecklare",
       logs: "Loggar",
+    },
+    storage: {
+      intro:
+        "Var appen sparar dina projekt. Båda alternativen ligger på din egen dator — ingenting laddas upp någonstans, och det finns varken konto eller server att ladda upp till.",
+      whereTitle: "Spara mina projekt",
+      device: "På den här enheten",
+      folder: "I en mapp",
+      deviceHint:
+        "I webbläsarens lagring för den här webbplatsen. Snabbt och alltid tillgängligt, men om du rensar webbdata försvinner det, och en annan webbläsare på samma dator ser ingenting.",
+      folderHint:
+        "I en mapp du väljer på den här disken, som en vanlig JSON-fil per arbetsyta. Den överlever en rensning av webbdata, säkerhetskopieras med resten av mappen och går att läsa själv. Mappen lämnar aldrig din dator.",
+      choose: "Välj en mapp…",
+      connectedTo: "Sparar till {name}",
+      disconnect: "Sluta använda mappen",
+      reconnect: "Anslut mappen igen",
+      reconnectNeeded: "Webbläsaren behöver din tillåtelse igen.",
+      unreadable: "Filen i mappen gick inte att läsa. Den lämnades orörd.",
+      unsupported:
+        "Den här webbläsaren kan inte öppna en mapp — File System Access API finns bara i Chromium-webbläsare (Chrome, Edge, Brave, Opera, Arc). Dina projekt stannar på den här enheten.",
+      fileHint:
+        "Varje arbetsyta är en fil i {name}: mask.json för standardarbetsytan, mask-<arbetsyta>.json för övriga. En kopia stannar på den här enheten så att appen öppnas direkt och fungerar även när mappen inte går att nå.",
+      opening: "Öppnar din mapp…",
+      choiceTitle: "Två uppsättningar projekt",
+      choiceBody:
+        "{name} innehåller redan projekt, och det gör den här enheten också. Bara den ena kan behållas — den andra ersätts.",
+      choiceHint:
+        "Ingenting skrivs förrän du väljer. Avbryt lämnar båda orörda och behåller dina projekt på den här enheten.",
+      keepFolder: "Behåll mappens",
+      keepDevice: "Behåll enhetens",
+      thisDevice: "Den här enheten",
+      theFolder: "Mappen",
+      oneProject: "1 projekt",
+      nProjects: "{n} projekt",
     },
     general: {
       intro: "Språk, navigering och diagnostik.",

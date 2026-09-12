@@ -16,10 +16,12 @@ import * as output from "../output.ts";
 // that namespace's document and resets the history.
 //
 // Storage sits behind the backend rather than inside the store, so a different
-// implementation can *take over* persistence without the store changing. Two
-// exist: the real `localDocBackend` (a per-namespace localStorage key) and the
-// developer test-data backend (`src/app/dev/`), swapped in by the Developer
-// tab's "Test data" toggle — the same seam the sibling contacts app uses.
+// implementation can *take over* persistence without the store changing. Three
+// exist: the default `localDocBackend` (a per-namespace localStorage key), the
+// local-folder backend (`folderStorage.ts`, a `.json` file in a folder the user
+// picked on this device), and the developer test-data backend (`src/app/dev/`),
+// swapped in by the Developer tab's "Test data" toggle — the same seam the
+// sibling contacts app uses.
 
 /** The localStorage key prefix every namespace's document is stored under. */
 export const DOC_KEY_PREFIX = "mask:doc";
@@ -43,7 +45,7 @@ export type LoadedDoc = { data: AppData; readable: boolean };
 /** Where a namespace's document is read from and written to. The store drives
  *  one of these; swapping it swaps storage wholesale. */
 export type DocBackend = {
-  readonly id: "local" | "dev";
+  readonly id: "local" | "dev" | "folder";
   /** The namespace's document, or an empty one when nothing is stored. */
   load(slug: string): LoadedDoc;
   /** Persist a namespace's document. Best effort — it must not throw. */
