@@ -16,9 +16,15 @@ const LAST_UPDATED = "2026-09-12";
 
 const SOURCE_URL = "https://github.com/niclaslindstedt/mask";
 
+// The shell sets `overflow: hidden` on html/body and leaves `#root` at its
+// auto height, so a percentage height here would resolve to `auto`, make no
+// scroll region, and leave everything below the fold clipped and unreachable —
+// with no document scroll to fall back on, that means a phone can't read past
+// the first screen. The page owns the viewport height outright, the way
+// `App.tsx` does, and scrolls inside it.
 export function PrivacyPage() {
   return (
-    <div className="h-full overflow-y-auto bg-page-bg px-4 pt-[calc(2.5rem+env(safe-area-inset-top))] pb-[calc(2.5rem+env(safe-area-inset-bottom))] text-fg">
+    <div className="h-[var(--app-height,100svh)] overflow-y-auto bg-page-bg px-4 pt-[calc(2.5rem+env(safe-area-inset-top))] pb-[calc(2.5rem+env(safe-area-inset-bottom))] text-fg">
       <article className="mx-auto flex w-full max-w-2xl flex-col gap-6 text-sm leading-relaxed">
         <header className="flex flex-col gap-3">
           <a
