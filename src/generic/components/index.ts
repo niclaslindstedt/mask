@@ -8,6 +8,8 @@ export {
 export { FileDropZone, type FileDropZoneLabels } from "./FileDropZone.tsx";
 export { GlyphButton, type GlyphButtonProps } from "./GlyphButton.tsx";
 export { MarkdownText } from "./MarkdownText.tsx";
+export { PdfView, type PdfViewLabels } from "./PdfView.tsx";
+export { PICKER_TRIGGER_LAYOUT, pickerTrigger } from "./pickerTrigger.ts";
 export {
   CREATE_OPTION,
   SelectOrCreate,

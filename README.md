@@ -89,8 +89,10 @@ onto the intake (or press **Paste text**), review what was found, press
   type a missed value, or mark it in the preview: marking text offers **Mask**,
   **Always mask** and **Never mask** on the spot. Clicking a highlight toggles
   it. Every kind picker ends in **Custom type…**, which takes a name of your own
-  for that value. **Read source** opens the document unmarked, to read rather
-  than review.
+  for that value. Pressing a document's name in the list — or **Read source**
+  above the preview — opens it unmarked, to read rather than review: a PDF as
+  its own pages, fitted to the width and zoomable, with its extracted text one
+  press away.
 - **Confirm and mask** — produces the masked text in the output pane, shown
   formatted rather than as its own Markdown, with a copy button and a
   **Download** menu beside it (PDF or Markdown file). Confirm again after

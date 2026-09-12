@@ -12,6 +12,7 @@ import {
   PLAIN_TEXT_KEYBOARD_PROPS,
   primeSoftKeyboard,
 } from "../softKeyboard.ts";
+import { pickerTrigger } from "./pickerTrigger.ts";
 
 // A `SelectPicker` whose last entry is "something else…": choosing it swaps the
 // trigger for a text field, and what the user types becomes the value — a
@@ -49,6 +50,9 @@ type Props = {
   /** Applied to the typed value before it is committed. */
   normalize?: (value: string) => string;
   className?: string;
+  /** The trigger's *look* — colours, border, padding, type size. The row
+   *  layout is always applied, so a caller can restyle the trigger without
+   *  its chevron wrapping under the value. */
   triggerClassName?: string;
   inputClassName?: string;
 };
@@ -160,7 +164,9 @@ export function SelectOrCreate({
         }
       }}
       ariaLabel={ariaLabel}
-      triggerClassName={triggerClassName}
+      triggerClassName={
+        triggerClassName ? pickerTrigger(triggerClassName) : undefined
+      }
     />
   );
 }

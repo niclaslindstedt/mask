@@ -4,8 +4,10 @@ import { useCallback, useState } from "react";
 import {
   UnsupportedFileError,
   extractTextFromFile,
+  isPdfFile,
 } from "../generic/extractText/index.ts";
 import { useT } from "./i18n/index.ts";
+import { keepSourceFile } from "./sourceFiles.ts";
 import type { Doc } from "./types.ts";
 import type { MaskStore } from "./useMaskStore.ts";
 import * as output from "../output.ts";
@@ -14,6 +16,12 @@ import * as output from "../output.ts";
 // (PDFs through the lazily-loaded pdf.js chunk), refuse what isn't text, and
 // file each one into the project. Reports through the output module and the
 // returned `busy` / `error` state the screen renders.
+//
+// A PDF's own bytes are kept beside the text it gave up (`sourceFiles.ts`),
+// so the reader can show the page as it was typeset rather than the
+// paragraphs pulled out of it. A vault that refuses the file costs the
+// document its page view and nothing else, so the failure is logged rather
+// than shown.
 
 export function useDocumentIntake(store: MaskStore, projectId: string | null) {
   const t = useT();
@@ -41,7 +49,7 @@ export function useDocumentIntake(store: MaskStore, projectId: string | null) {
             output.warn(`No text in ${file.name}`);
             continue;
           }
-          store.addDocument(projectId, {
+          const id = store.addDocument(projectId, {
             name: file.name,
             text: extracted.text,
             source: "file",
@@ -49,6 +57,15 @@ export function useDocumentIntake(store: MaskStore, projectId: string | null) {
             markdown: extracted.markdown,
             pages: extracted.pages,
           });
+          if (isPdfFile(file)) {
+            keepSourceFile(id, file).catch((err: unknown) => {
+              output.warn(
+                `Couldn't keep ${file.name} for viewing — ${
+                  err instanceof Error ? err.message : String(err)
+                }`,
+              );
+            });
+          }
         } catch (err) {
           const message =
             err instanceof UnsupportedFileError

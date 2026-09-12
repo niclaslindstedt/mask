@@ -22,6 +22,7 @@ import {
 } from "../../generic/placeholders.ts";
 import { DETECTOR_IDS, type DetectorId } from "../detectors/index.ts";
 import { useDevSeed } from "../dev/useDevSeed.ts";
+import { clearSourceFiles } from "../sourceFiles.ts";
 import type { CustomKindsStore } from "../useCustomKinds.ts";
 import { PlaceholderTypesSection } from "./kinds.tsx";
 import { descendingLogStore } from "../log.ts";
@@ -238,7 +239,10 @@ export function DeveloperTab({ pwa }: { pwa: PwaUpdate }) {
           } catch {
             // Storage unavailable — nothing to erase.
           }
-          location.reload();
+          // The kept source files live in IndexedDB rather than in
+          // localStorage, so they are erased on their own — and the reload
+          // waits for it, so nothing survives the press.
+          void clearSourceFiles().finally(() => location.reload());
         }}
         labels={{ close: t("common.close"), cancel: t("common.cancel") }}
       />
