@@ -393,7 +393,7 @@ export function ReviewPanel({
                           accept={acceptKind}
                           normalize={normalizeKindLabel}
                           ariaLabel={t("review.kindPickerLabel")}
-                          triggerClassName="w-full rounded border border-line bg-surface px-2 py-1 text-left text-xs text-fg"
+                          triggerClassName="rounded border border-line bg-surface px-2 py-1 text-left text-xs text-fg"
                         />
                       )}
                     </span>

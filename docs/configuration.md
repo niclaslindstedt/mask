@@ -47,7 +47,13 @@ For the curious (and for a manual backup via the browser's devtools):
 | `mask:logs`                                | The captured log buffer                            |
 | `mask:footer-collapsed`                    | Whether the side-menu footer is folded away        |
 
-Settings → Developer → **Erase all local data** clears every one of them.
+One more store sits outside `localStorage`: the IndexedDB database
+`mask:sources` holds the PDFs you uploaded, keyed by document id, so the
+reader can draw their pages. Files whose document has been deleted are swept
+at the next start.
+
+Settings → Developer → **Erase all local data** clears every one of them, the
+IndexedDB database included.
 
 ## The detector dictionaries
 

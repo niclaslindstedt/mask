@@ -40,6 +40,7 @@ import { logStore } from "./app/log.ts";
 import { cacheIdForBase } from "./app/pwa.ts";
 import { useAppSettings } from "./app/useAppSettings.ts";
 import { useCustomKinds } from "./app/useCustomKinds.ts";
+import { sweepSourceFiles } from "./app/sourceFiles.ts";
 import { localDocBackend, useMaskStore } from "./app/useMaskStore.ts";
 import { useNamespaces } from "./app/useNamespaces.ts";
 import { useRules } from "./app/useRules.ts";
@@ -139,6 +140,10 @@ export function App() {
 
   useEffect(() => {
     status("App started");
+    // The files of documents deleted in an earlier session go now — a delete
+    // is undoable while the session lasts, so the vault is swept at boot
+    // rather than on the press.
+    void sweepSourceFiles();
   }, []);
 
   // Re-badge the tab with the workspace's glyph; the app mark otherwise.

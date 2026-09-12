@@ -90,7 +90,8 @@ fix the token in the answer by hand.
 ## Where is my data?
 
 In this browser's `localStorage`, under the keys listed in
-[`configuration.md`](configuration.md). Clearing site data, a private window,
+[`configuration.md`](configuration.md), plus the `mask:sources` IndexedDB
+database holding the PDFs you uploaded. Clearing site data, a private window,
 or another browser starts empty. There is no sync.
 
 ## The dev server shows stale content

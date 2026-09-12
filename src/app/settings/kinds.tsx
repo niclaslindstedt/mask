@@ -8,6 +8,7 @@ import {
   TrashIcon,
 } from "@niclaslindstedt/oss-framework/components";
 
+import { pickerTrigger } from "../../generic/components/index.ts";
 import {
   placeholderExamples,
   type PlaceholderStyle,
@@ -95,7 +96,9 @@ export function PlaceholderTypesSection({
                   ariaLabel={t("settings.masking.typeScope", {
                     label: kind.label,
                   })}
-                  triggerClassName="w-full rounded border border-line bg-surface px-2 py-1 text-left text-xs text-fg"
+                  triggerClassName={pickerTrigger(
+                    "rounded border border-line bg-surface px-2 py-1 text-left text-xs text-fg",
+                  )}
                 />
               </span>
               <button

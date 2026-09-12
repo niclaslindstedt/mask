@@ -102,7 +102,8 @@ stores ("store stays in the app"):
   `SettingsModal.tsx` + `settings/`, `SearchOverlay.tsx` — the screens.
 - `src/generic/` — **framework candidates**: placeholder schemes, text
   scanning / substitution, Luhn, file → text extraction (including the pass
-  that lays a PDF's positioned runs back out into paragraphs), and five
+  that lays a PDF's positioned runs back out into paragraphs), a PDF page
+  renderer and the viewer over it, an IndexedDB blob vault, and the
   components.
   Written to the framework's rules (no domain names, labels injected); nothing
   here imports from `src/app/`. Lift into the framework when a second app

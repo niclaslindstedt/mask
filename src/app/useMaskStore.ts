@@ -21,7 +21,8 @@ import * as output from "../output.ts";
 // developer test-data backend (`src/app/dev/`), swapped in by the Developer
 // tab's "Test data" toggle — the same seam the sibling contacts app uses.
 
-const DOC_KEY_PREFIX = "mask:doc";
+/** The localStorage key prefix every namespace's document is stored under. */
+export const DOC_KEY_PREFIX = "mask:doc";
 
 /** localStorage key for a namespace's document. */
 export function docKey(slug: string): string {

@@ -43,10 +43,18 @@ so a person masked as `NAME1` in the first letter is `NAME1` in the reply too.
 ## Reading a document
 
 The review's preview is tinted and clipped because it is there to be decided
-about, not read. To read a document as it came in, press the **scroll** glyph
-on its row in the document list, or **Read source** above the preview: the
-whole extracted text opens unmarked, with a copy button. A PDF is kept as the
-text pulled out of it — the file itself is never stored anywhere.
+about, not read. To open a document as it came in, press its name in the
+document list, or **Read source** above the preview.
+
+A PDF opens as the PDF: its own pages, fitted to the width and zoomable, so a
+table, a stamp or a signature is there to be read rather than flattened into
+paragraphs. **Text** beside it switches to the extracted text — the text the
+detectors actually read, unmarked and with a copy button. Anything else opens
+as that text alone.
+
+The file stays on your device like everything else here: it is kept in this
+browser so the pages can be drawn again later, it is never uploaded anywhere,
+and Settings → Developer → **Erase all local data** clears it with the rest.
 
 On a phone the document list shares one scroll with the review, so it scrolls
 away as you move down, and the intake box above them folds into a single row as

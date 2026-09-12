@@ -20,10 +20,13 @@ src/
 │   ├── extractText/      file → text (PDF through a lazy pdf.js chunk,
 │   │                     laid back out into paragraphs by `layout.ts`, then
 │   │                     written back out as Markdown by `markup.ts`)
-│   ├── pdf/              Markdown → PDF (a pure typesetter + a lazy jsPDF writer)
+│   ├── pdf/              PDF both ways (a pure typesetter + a lazy jsPDF
+│   │                     writer; page shapes + a lazy pdf.js page renderer)
+│   ├── blobVault.ts      a keyed store of blobs in IndexedDB, best-effort throughout
 │   ├── collapseOnScroll.ts  collapse a scroll container's header once it is scrolled past
 │   └── components/       FileDropZone, StringListEditor, GlyphButton, SpanText,
-│                         CopyablePane, MarkdownText, DownloadMenu, SelectOrCreate
+│                         CopyablePane, MarkdownText, PdfView, DownloadMenu,
+│                         SelectOrCreate
 └── app/                the domain
     ├── types.ts          Project / Doc / Variable / GlobalRules
     ├── detectors/        the Swedish-context detectors + generated dictionaries
@@ -36,7 +39,9 @@ src/
     ├── useCustomKinds.ts those types' two lists — global, and per workspace
     ├── useAppSettings.ts, useNamespaces.ts, migrations.ts, log.ts
     ├── i18n/             en + sv catalogs over the framework's createI18n
-    ├── DocumentReader.tsx  a document's source text, read rather than reviewed
+    ├── sourceFiles.ts     the uploaded PDF itself, kept in the blob vault
+    ├── DocumentReader.tsx  a document read rather than reviewed — its own
+    │                       pages for a PDF, its extracted text otherwise
     └── *Screen / *Tab / *Panel.tsx   the screens
 ```
 
@@ -149,8 +154,9 @@ SVG attributes like `focusable` as `"false"`.
 
 The entry chunk carries the shell, the stores, the detectors' code, and the
 English catalog. Deferred behind `import()`: the Swedish catalog, the
-dictionaries data chunk (on first review), pdf.js (on the first PDF), the PDF
-_writer_ (on the first PDF download), the Settings modal, the changelog
+dictionaries data chunk (on first review), pdf.js (on the first PDF uploaded
+or opened — one chunk shared by the text extraction and the page renderer),
+the PDF _writer_ (on the first PDF download), the Settings modal, the changelog
 payload, and the developer test-data chunk (on the first time the toggle turns
 on).
 
@@ -234,6 +240,30 @@ it can't know (how wide a string is) injected as a `measure` callback — and
 the PDF standard fonts, which every reader already has and which encode
 Latin-1, so an ordinary Swedish document costs the file nothing in embedded
 faces.
+
+### Showing a PDF as a PDF
+
+Reading a document back as paragraphs loses what a page's layout said —
+columns, tables, a stamp, a signature — so the reader shows the file itself.
+That means keeping it: `generic/blobVault.ts` is a small IndexedDB store of
+blobs, and `app/sourceFiles.ts` puts every uploaded PDF in it under the
+document's id. The bytes never leave the browser, the vault is erased with
+everything else by Settings → Developer, and files whose document is gone are
+swept at boot — deleting a document is undoable, so the file can't go with it
+on the press.
+
+Every operation on the vault resolves rather than throws: a browser that
+refuses IndexedDB answers "nothing stored", and the reader falls back to the
+extracted text — which is what every document had before, and what the
+detectors read either way.
+
+`generic/pdf/pages.ts` holds the page shapes and the fit arithmetic, and
+`generic/pdf/render.ts` the pdf.js half that paints a page onto a canvas.
+Keeping them apart is what keeps the engine off the boot path: the viewer
+(`components/PdfView.tsx`) imports the first statically and the second through
+an `import()` when a PDF is actually opened. It paints a page as it comes into
+view and drops its bitmap as it leaves, so a long document costs what the
+window shows rather than what it contains.
 
 ## PWA
 

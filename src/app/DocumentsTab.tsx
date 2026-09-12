@@ -8,7 +8,6 @@ import {
   FileIcon,
   Modal,
   NoteIcon,
-  ScrollTextIcon,
   SpinnerIcon,
   TrashIcon,
 } from "@niclaslindstedt/oss-framework/components";
@@ -38,8 +37,11 @@ import type { RulesStore } from "./useRules.ts";
 // it. A phone has too little height to spend a fifth of it on a drop target
 // nobody is aiming at, and too few ways back to hide the way in entirely.
 //
-// A document is more than a row to pick: pressing its glyph opens the source
-// text as it came in, for reading rather than deciding.
+// Pressing a document opens it: the row picks it for review *and* opens it
+// for reading — a PDF as its own pages, anything else as its text. Opening a
+// document is the obvious meaning of pressing its name, and the review it
+// selects is right there behind the modal when it closes. **Read source**
+// above the review reopens it without a trip back to the list.
 
 type Props = {
   project: Project;
@@ -132,7 +134,11 @@ export function DocumentsTab({
                 <li key={d.id} className="flex items-center gap-1">
                   <button
                     type="button"
-                    onClick={() => store.setActiveDocument(project.id, d.id)}
+                    title={t("reader.openTitle", { name: d.name })}
+                    onClick={() => {
+                      store.setActiveDocument(project.id, d.id);
+                      setReading(d);
+                    }}
                     aria-current={active ? "true" : undefined}
                     className={`flex min-w-0 flex-1 cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm ${
                       active
@@ -149,15 +155,6 @@ export function DocumentsTab({
                         ? t("documents.statusMasked")
                         : t("documents.statusPending")}
                     </Badge>
-                  </button>
-                  <button
-                    type="button"
-                    aria-label={t("reader.openTitle", { name: d.name })}
-                    title={t("reader.openTitle", { name: d.name })}
-                    onClick={() => setReading(d)}
-                    className="inline-flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded text-muted hover:bg-surface-2 hover:text-accent"
-                  >
-                    <ScrollTextIcon className="h-4 w-4" />
                   </button>
                   <button
                     type="button"

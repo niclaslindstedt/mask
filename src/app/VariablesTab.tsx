@@ -126,7 +126,7 @@ export function VariablesTab({ project, store, settings, kinds }: Props) {
                     accept={acceptKind}
                     normalize={normalizeKindLabel}
                     ariaLabel={t("variables.kind")}
-                    triggerClassName="w-full rounded border border-line bg-surface px-2 py-1 text-left text-xs text-fg"
+                    triggerClassName="rounded border border-line bg-surface px-2 py-1 text-left text-xs text-fg"
                   />
                 </span>
                 <button
