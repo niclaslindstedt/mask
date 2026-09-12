@@ -10,6 +10,7 @@ import {
   ToggleRow,
 } from "@niclaslindstedt/oss-framework/components";
 import { LogViewer } from "@niclaslindstedt/oss-framework/logging";
+import { clearDirectoryHandle } from "@niclaslindstedt/oss-framework/storage";
 import {
   CheckForUpdatesItem,
   type PwaUpdate,
@@ -239,10 +240,16 @@ export function DeveloperTab({ pwa }: { pwa: PwaUpdate }) {
           } catch {
             // Storage unavailable — nothing to erase.
           }
-          // The kept source files live in IndexedDB rather than in
-          // localStorage, so they are erased on their own — and the reload
-          // waits for it, so nothing survives the press.
-          void clearSourceFiles().finally(() => location.reload());
+          // The kept source files and a picked folder's permission grant live
+          // in IndexedDB rather than in localStorage, so they are erased on
+          // their own — and the reload waits for both, so nothing survives the
+          // press. The folder's own files are never touched: they are the
+          // user's, on their disk, outside anything this button owns.
+          void Promise.all([clearSourceFiles(), clearDirectoryHandle()])
+            .catch(() => {
+              // Nothing readable to erase — the reload below still stands.
+            })
+            .finally(() => location.reload());
         }}
         labels={{ close: t("common.close"), cancel: t("common.cancel") }}
       />

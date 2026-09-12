@@ -94,6 +94,30 @@ In this browser's `localStorage`, under the keys listed in
 database holding the PDFs you uploaded. Clearing site data, a private window,
 or another browser starts empty. There is no sync.
 
+Settings → **Storage** can move the projects into a folder you pick on this
+disk instead, which survives clearing site data — see
+[Storage](configuration.md#storage). It is still local: there is no cloud
+option, and nothing is ever uploaded.
+
+## Settings → Storage offers no folder
+
+The folder option needs the browser's File System Access API, which today only
+Chromium-based browsers ship (Chrome, Edge, Brave, Opera, Arc). In Firefox and
+Safari the option is hidden rather than offered and then failing, and your
+projects stay in the browser's own storage.
+
+## Mask keeps asking to reconnect the folder
+
+The browser's permission for a picked folder is not permanent: a restart, a
+profile cleanup, or revoking it under the site's permissions drops it, and
+re-granting needs a click from you — which is what **Reconnect the folder** in
+Settings → Storage is. Until then Mask works from the copy it keeps on this
+device, so nothing is lost; the folder's file simply stops being updated.
+
+If reconnecting keeps failing, check that the folder still exists and is
+readable (an unmounted drive or a synced folder that went offline looks the
+same to the browser), or pick it again with **Choose a folder…**.
+
 ## The dev server shows stale content
 
 A service worker installed by an earlier `vite preview` on the same origin can

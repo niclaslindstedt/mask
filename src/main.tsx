@@ -11,7 +11,6 @@ import "@fontsource/jetbrains-mono/latin-ext-700.css";
 import "@niclaslindstedt/oss-framework/theme/fontsource";
 
 import "./styles.css";
-import { App } from "./App.tsx";
 import { LanguageRoot } from "./app/i18n/index.ts";
 
 // In dev no worker registers (`usePwaUpdate` runs disabled), but a worker
@@ -26,9 +25,26 @@ if (import.meta.env.DEV && "serviceWorker" in navigator) {
 const root = document.getElementById("root");
 if (!root) throw new Error("missing #root element");
 
-render(
-  <LanguageRoot>
-    <App />
-  </LanguageRoot>,
-  root,
-);
+// A trivial path switch. The build emits `dist/privacy/index.html` (the
+// `emit-privacy-alias` plugin in `vite.config.ts`) so GitHub Pages serves the
+// same bundle from the clean URL `/privacy/`, and this decides which page to
+// mount. A deploy slot nests it one segment deeper (`/preview/privacy/`), so
+// the check matches the suffix rather than the whole path. Both pages load
+// behind `import()`, so opening the policy never pulls the app in.
+const path = window.location.pathname.replace(/\/$/, "");
+
+function loadPage() {
+  if (path.endsWith("/privacy")) {
+    return import("./app/PrivacyPage.tsx").then((m) => m.PrivacyPage);
+  }
+  return import("./App.tsx").then((m) => m.App);
+}
+
+void loadPage().then((Page) => {
+  render(
+    <LanguageRoot>
+      <Page />
+    </LanguageRoot>,
+    root,
+  );
+});

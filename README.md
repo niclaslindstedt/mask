@@ -15,8 +15,10 @@ to restore the real values. Nothing leaves your browser.
 ## Why?
 
 - **The details never leave the device.** Detection, masking and restoring all
-  run in the browser; there is no server, no account, no upload. The LLM only
-  ever sees `NAME1 bor på STREET1 i CITY1`.
+  run in the browser; there is no server, no account, no upload, and no cloud
+  storage to connect. The LLM only ever sees `NAME1 bor på STREET1 i CITY1`.
+  The [privacy policy](https://mask.niclaslindstedt.se/privacy/) spells out
+  exactly what is stored and where.
 - **You confirm every replacement.** Detectors propose; a review with a
   checkbox per value, a kind picker, and a click-to-toggle preview decides —
   and any text you mark there can be masked, blacklisted, or whitelisted in one
@@ -30,6 +32,11 @@ to restore the real values. Nothing leaves your browser.
 - **Rules carry everywhere.** A global blacklist (always mask), a whitelist
   (never mask), and your own regex patterns apply across every workspace and
   project — and a review row adds to either list in one press.
+- **Your projects, where you want them.** They live in this browser by
+  default, or — in a Chromium-based browser — as one plain JSON file per
+  workspace in a folder you pick on your own disk, so they survive a cleared
+  cache and back up with the rest of that folder. Both are local; neither is a
+  cloud.
 - **Swedish first.** Personal identity and organisation numbers are
   check-digit verified; phone numbers, postal codes and street addresses
   follow Swedish conventions; names and localities come from SCB's and the
@@ -154,6 +161,8 @@ the app on sample projects already holding them.
   paste the text.
 - **A name was not detected** — mark it in the preview and press **Mask**, or
   **Always mask** to blacklist it everywhere.
+- **Settings → Storage offers no folder** — the directory picker is a Chromium
+  feature; Firefox and Safari keep your projects in the browser.
 - More in [docs/troubleshooting.md](docs/troubleshooting.md).
 
 ## Documentation

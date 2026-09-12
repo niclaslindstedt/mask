@@ -33,6 +33,10 @@ src/
     ├── masking.ts        detect → plan → mask / unmask (pure)
     ├── reviewRows.ts     the review's rows: fold in a fresh detection, add one (pure)
     ├── useMaskStore.ts   projects per workspace, undo/redo, storage backend
+    ├── folderStorage.ts  the local-folder backend: which file, what to do
+    │                     with one that already holds a document (pure)
+    ├── useFolderStorage.ts  the picked folder's handle, permission, and state
+    ├── PrivacyPage.tsx   the standalone policy served at /privacy/
     ├── dev/              the developer test-data backend (lazy, dev-only)
     ├── useRules.ts       the global rules (one key across workspaces)
     ├── customKinds.ts    custom placeholder types: label rules, list transforms (pure)
@@ -126,13 +130,41 @@ changes the height of the very thing being measured.
 `useMaskStore` never touches `localStorage` directly: it reads and writes a
 namespace's document through a `DocBackend` (`load(slug)` / `save(slug, doc)`),
 so a different implementation can take over persistence without the store
-changing. Two exist — `localDocBackend`, the real one (a `mask:doc[:slug]` key
-per workspace), and the in-memory test-data backend under `src/app/dev/`, which
-`App` swaps in while Settings → Developer → **Test data** is on. The slug and
-the backend travel with the document in state, so switching either re-adopts
-the matching document and resets the undo history, and a seeded session never
-writes to disk: turning the toggle off (or reloading) brings the real document
-back untouched.
+changing. Three exist — `localDocBackend`, the default (a `mask:doc[:slug]` key
+per workspace), the local-folder backend (below), and the in-memory test-data
+backend under `src/app/dev/`, which `App` swaps in while Settings → Developer →
+**Test data** is on. The slug and the backend travel with the document in
+state, so switching either re-adopts the matching document and resets the undo
+history, and a seeded session never writes to disk: turning the toggle off (or
+reloading) brings the real document back untouched.
+
+### The local folder
+
+Settings → **Storage** can point the document at a folder the user picks on
+their own disk instead, through the browser's File System Access API — still
+local, but a real file: greppable, backed up with the rest of the folder, and
+untouched by clearing site data. Each workspace is one file (`mask.json` for
+the default workspace, `mask-<slug>.json` otherwise).
+
+The framework owns every generic piece — `isFolderBackendAvailable`,
+`ensurePermission`, the handle's IndexedDB round trip, and
+`createFolderAdapter`. `folderStorage.ts` holds the app's half: the file name
+per workspace, `planFolderSetup` (push / adopt / ask / unreadable — what to do
+with a folder that already holds a document), and the backend itself, whose
+writes are serialised and coalesced so a burst of edits costs one more write
+rather than one each. Every write also updates the `localStorage` copy, which
+trails as a cache: the app opens instantly, survives a revoked grant, and has
+the projects waiting if the folder is disconnected.
+
+`useFolderStorage` owns the state around it — the handle, the boot permission
+probe, the read that decides which document the store adopts, and the reconnect
+cue when the OS drops the grant. Because a folder read decides which document
+the store adopts, `App` holds the working surface behind a spinner until it
+settles; the one collision that can't be resolved automatically (a fresh
+connect where both sides hold projects) is put to the user in the Storage tab.
+
+Nothing here reaches a network — there is no cloud backend, by design, and the
+[privacy policy](../src/app/PrivacyPage.tsx) at `/privacy/` says so in full.
 
 The test data itself (`dev/testData.ts`) is built from the files in
 `examples/`, minting each project's placeholders exactly as a confirmed review
@@ -159,6 +191,13 @@ or opened — one chunk shared by the text extraction and the page renderer),
 the PDF _writer_ (on the first PDF download), the Settings modal, the changelog
 payload, and the developer test-data chunk (on the first time the toggle turns
 on).
+
+`main.tsx` mounts one of two pages by pathname — the app, or the privacy policy
+at `/privacy/` — and both sit behind an `import()`, so opening the policy never
+pulls the app in. The build mirrors `index.html` to `privacy/index.html` with
+its own `<head>` copy (the `emit-privacy-alias` plugin in `vite.config.ts`), so
+Pages serves the clean URL; `build.modulePreload.resolveDependencies` drops the
+JS-side preload hints that would otherwise make either branch fetch both.
 
 The PDF chunk pulls pdf.js from `pdfjs-dist`'s `legacy/` build: the default
 build reads the `Iterator` global at module scope, so it throws before a page

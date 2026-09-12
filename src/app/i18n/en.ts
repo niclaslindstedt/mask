@@ -47,6 +47,8 @@ export const en = {
     about: "About",
     whatsNew: "What’s new",
     source: "Source code",
+    privacy: "Privacy policy",
+    privacySublabel: "Nothing leaves your browser",
     settings: "Settings",
     checkUpdates: "Check for updates",
     checkingUpdates: "Checking…",
@@ -309,8 +311,43 @@ export const en = {
       general: "General",
       appearance: "Appearance",
       masking: "Masking",
+      storage: "Storage",
       developer: "Developer",
       logs: "Logs",
+    },
+    storage: {
+      intro:
+        "Where this app keeps your projects. Both choices are on your own machine — nothing is uploaded anywhere, and there is no account or server to upload it to.",
+      whereTitle: "Keep my projects",
+      device: "On this device",
+      folder: "In a folder",
+      deviceHint:
+        "In this browser’s storage for this site. Fast and always available, but clearing your browsing data erases it, and another browser on the same machine sees nothing.",
+      folderHint:
+        "In a folder you pick on this disk, as a plain JSON file per workspace. It survives clearing site data, backs up with the rest of the folder, and you can read it yourself. The folder never leaves your machine.",
+      choose: "Choose a folder…",
+      connectedTo: "Saving to {name}",
+      disconnect: "Stop using the folder",
+      reconnect: "Reconnect the folder",
+      reconnectNeeded: "The browser needs your permission again.",
+      unreadable:
+        "The file in that folder couldn’t be read. It was left untouched.",
+      unsupported:
+        "This browser can’t open a folder — the File System Access API is a Chromium feature (Chrome, Edge, Brave, Opera, Arc). Your projects stay on this device.",
+      fileHint:
+        "Each workspace is one file in {name}: mask.json for the default workspace, mask-<workspace>.json for the others. A copy stays on this device so the app opens instantly and keeps working if the folder can’t be reached.",
+      opening: "Opening your folder…",
+      choiceTitle: "Two sets of projects",
+      choiceBody:
+        "{name} already holds projects, and so does this device. Only one of them can be kept — the other is replaced.",
+      choiceHint:
+        "Nothing is written until you choose. Cancel leaves both untouched and keeps your projects on this device.",
+      keepFolder: "Keep the folder’s",
+      keepDevice: "Keep this device’s",
+      thisDevice: "This device",
+      theFolder: "The folder",
+      oneProject: "1 project",
+      nProjects: "{n} projects",
     },
     general: {
       intro: "Language, navigation, and diagnostics.",
