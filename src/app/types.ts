@@ -41,9 +41,10 @@ export type Doc = {
   /** The extracted plain text. */
   text: string;
   source: "file" | "paste" | "sample";
-  format: "text" | "pdf";
+  format: "text" | "pdf" | "docx";
   /** Whether `text` is Markdown — the review renders it formatted rather than
-   *  verbatim, and a download offers the PDF it can be typeset into. */
+   *  verbatim, and a download offers the PDF it can be typeset into. A PDF and
+   *  a Word file always are; a pasted document is not. */
   markdown?: boolean;
   addedAt: string;
   pages?: number;

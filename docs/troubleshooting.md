@@ -46,6 +46,25 @@ Text extraction runs on pdf.js, which needs a browser from late 2023 or newer
 (Safari / iOS 17.4, Chrome 119, Firefox 121). Everything else in the app works
 without it — copy the text out of the PDF and use **Paste text**.
 
+## A `.doc` file is refused
+
+`.doc` is Word's pre-2007 binary format — a different thing from `.docx`
+entirely, not XML and not a ZIP, and Mask does not read it. Open it in Word (or
+LibreOffice) and **Save as** `.docx`, then add it again.
+
+## A Word document's pages don't look like Word
+
+They aren't Word's pages. A `.docx` is a flow of paragraphs, not a set of
+pages: it only becomes pages when a word processor lays it out, and there is no
+word processor in the browser. So **Document** shows the extracted text
+typeset by Mask — the headings, lists, tables and emphasis it read out of the
+file, on A4. The words, their order and their structure are the document's; the
+page breaks, the margins and the faces are the typesetter's.
+
+That is also why what you see there is worth reading: it is exactly the text
+the detectors work over. A PDF is the other way round — the file itself is
+kept, so **Document** is the real page.
+
 ## A name was not detected
 
 The name detector anchors on dictionaries of common Swedish given names and

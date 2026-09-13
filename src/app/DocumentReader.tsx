@@ -14,9 +14,10 @@ import {
   MarkdownText,
   PdfView,
 } from "../generic/components/index.ts";
+import { loadDocumentPages } from "./documentPages.ts";
 import { useT } from "./i18n/index.ts";
-import { loadSourceFile } from "./sourceFiles.ts";
 import type { Doc } from "./types.ts";
+import * as output from "../output.ts";
 
 // Read one document as it came in. The review beside it is about deciding,
 // and its preview is tinted and clipped to say so — this is the plain read of
@@ -25,10 +26,12 @@ import type { Doc } from "./types.ts";
 // A PDF opens as the PDF: its own pages, painted by the same engine that read
 // the text out of them, because a page is a layout — columns, tables, stamps,
 // a signature — and the text pulled out of it is only what that layout said.
-// The extracted text is a press away behind it, since that text is what the
-// detectors actually read and what the copy button hands over.
+// A Word file has no pages of its own until something paginates it, so it is
+// typeset into some (`documentPages.ts`) and shown through the same viewer.
+// The extracted text is a press away behind either, since that text is what
+// the detectors actually read and what the copy button hands over.
 //
-// A document whose file isn't held — one pasted in, one added before files
+// A document with no pages to show — one pasted in, a PDF added before files
 // were kept, or a browser that refuses the vault — opens as that text alone.
 //
 // Either face can take the whole screen, which on a phone is the difference
@@ -45,6 +48,11 @@ export function DocumentReader({ doc, onClose }: Props) {
   const t = useT();
   const [file, setFile] = useState<Blob | null>(null);
   const [face, setFace] = useState<Face>("pages");
+  const formatLabel: Record<Doc["format"], string | null> = {
+    text: null,
+    pdf: t("reader.formatPdf"),
+    docx: t("reader.formatWord"),
+  };
   const sourceLabel = {
     file: t("reader.sourceFile"),
     paste: t("reader.sourcePaste"),
@@ -55,21 +63,38 @@ export function DocumentReader({ doc, onClose }: Props) {
     exit: t("reader.fullscreenExit"),
   };
 
-  // The document's own file, if one is kept for it. Cleared first, so the
-  // previous document's pages are never shown under this one's name.
+  // The document's pages, when it has any. Cleared first, so the previous
+  // document's pages are never shown under this one's name.
   const docId = doc?.id ?? null;
+  const docFormat = doc?.format ?? "text";
+  const docName = doc?.name ?? "";
+  const docText = doc?.text ?? "";
+  const pageNumberOf = t("review.pageNumberOf");
   useEffect(() => {
     setFile(null);
     setFace("pages");
     if (!docId) return;
     let live = true;
-    void loadSourceFile(docId).then((blob) => {
-      if (live) setFile(blob);
-    });
+    void loadDocumentPages(
+      { id: docId, format: docFormat, name: docName, text: docText },
+      { pageNumberOf },
+    )
+      .then((blob) => {
+        if (live) setFile(blob);
+      })
+      .catch((err: unknown) => {
+        // No pages is not a failure to read the document — the text is still
+        // there, and that is what the review works from.
+        output.warn(
+          `Couldn't open ${docName} as pages — ${
+            err instanceof Error ? err.message : String(err)
+          }`,
+        );
+      });
     return () => {
       live = false;
     };
-  }, [docId]);
+  }, [docId, docFormat, docName, docText, pageNumberOf]);
 
   const showPages = file !== null && face === "pages";
 
@@ -108,7 +133,7 @@ export function DocumentReader({ doc, onClose }: Props) {
             <p className="text-xs text-muted">
               {[
                 sourceLabel[doc.source],
-                doc.format === "pdf" ? t("reader.formatPdf") : null,
+                formatLabel[doc.format],
                 doc.pages
                   ? t("documents.pages", { n: String(doc.pages) })
                   : null,
@@ -128,6 +153,9 @@ export function DocumentReader({ doc, onClose }: Props) {
               />
             )}
           </div>
+          {showPages && doc.format === "docx" && (
+            <p className="text-xs text-muted">{t("reader.typesetNote")}</p>
+          )}
           {showPages ? (
             <PdfView
               file={file}

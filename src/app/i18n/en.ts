@@ -116,7 +116,7 @@ export const en = {
     heading: "Documents",
     dropTitle: "Drop a file here",
     dropCompact: "Add a file",
-    dropHint: "PDF or text — or press to browse",
+    dropHint: "Word, PDF or text — or press to browse",
     dropActive: "Release to add",
     pasteText: "Paste text",
     pasteTitle: "Paste text",
@@ -135,7 +135,9 @@ export const en = {
     pages: "{n} pages",
     extracting: "Reading {name}…",
     extractFailed: "Couldn’t read {name}: {reason}",
-    unsupported: "{name} is not a PDF or text file.",
+    unsupported: "{name} is not a Word, PDF or text file.",
+    unsupportedLegacy:
+      "{name} is an old Word file — open it and save it as {instead} first.",
     added: "Added {name}",
     emptyText:
       "{name} contains no text to mask — a scanned PDF needs OCR first.",
@@ -208,6 +210,9 @@ export const en = {
     sourcePaste: "Pasted text",
     sourceSample: "Sample document",
     formatPdf: "PDF",
+    formatWord: "Word",
+    typesetNote:
+      "A Word file has no pages of its own — this is its text typeset by Mask, not Word's own layout.",
     empty: "This document has no text.",
   },
   variables: {

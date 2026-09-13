@@ -14,8 +14,8 @@ The app opens in the **General** workspace with no project yet.
 1. **Create a project** — the `+` in the side menu (or the button on the empty
    screen), type a name, press Enter. A project is a case, a matter, a batch
    of documents that share the same people and places.
-2. **Add a document** — drop a PDF or text file onto the intake box, press it
-   to browse, or use **Paste text**. The [`examples/`](../examples/) folder has
+2. **Add a document** — drop a Word file (`.docx`), a PDF or a text file onto
+   the intake box, press it to browse, or use **Paste text**. The [`examples/`](../examples/) folder has
    fictional Swedish documents to try things on.
 3. **Review** — every value the detectors found is listed with a checkbox, its
    kind, and the placeholder it will get. Untick a false positive, change a

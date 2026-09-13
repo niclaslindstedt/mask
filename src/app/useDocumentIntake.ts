@@ -2,6 +2,7 @@
 import { useCallback, useState } from "react";
 
 import {
+  LegacyFormatError,
   UnsupportedFileError,
   extractTextFromFile,
   isPdfFile,
@@ -12,10 +13,11 @@ import type { Doc } from "./types.ts";
 import type { MaskStore } from "./useMaskStore.ts";
 import * as output from "../output.ts";
 
-// Turns picked / dropped files into project documents: extract the text
-// (PDFs through the lazily-loaded pdf.js chunk), refuse what isn't text, and
-// file each one into the project. Reports through the output module and the
-// returned `busy` / `error` state the screen renders.
+// Turns picked / dropped files into project documents: extract the text (a
+// PDF through the lazily-loaded pdf.js chunk, a Word file through the equally
+// lazy ZIP-and-XML one), refuse what isn't text, and file each one into the
+// project. Reports through the output module and the returned `busy` / `error`
+// state the screen renders.
 //
 // A PDF's own bytes are kept beside the text it gave up (`sourceFiles.ts`),
 // so the reader can show the page as it was typeset rather than the
@@ -67,13 +69,7 @@ export function useDocumentIntake(store: MaskStore, projectId: string | null) {
             });
           }
         } catch (err) {
-          const message =
-            err instanceof UnsupportedFileError
-              ? t("documents.unsupported", { name: file.name })
-              : t("documents.extractFailed", {
-                  name: file.name,
-                  reason: err instanceof Error ? err.message : String(err),
-                });
+          const message = errorMessage(err, file.name, t);
           setError(message);
           output.error(message);
         }
@@ -84,4 +80,24 @@ export function useDocumentIntake(store: MaskStore, projectId: string | null) {
   );
 
   return { addFiles, addText, busy, error, clearError: () => setError(null) };
+}
+
+/** What went wrong with one file, said to the person who dropped it. A format
+ *  whose successor is readable is named along with what to save it as; every
+ *  other failure carries the reason it failed. */
+function errorMessage(
+  err: unknown,
+  name: string,
+  t: ReturnType<typeof useT>,
+): string {
+  if (err instanceof LegacyFormatError) {
+    return t("documents.unsupportedLegacy", { name, instead: err.instead });
+  }
+  if (err instanceof UnsupportedFileError) {
+    return t("documents.unsupported", { name });
+  }
+  return t("documents.extractFailed", {
+    name,
+    reason: err instanceof Error ? err.message : String(err),
+  });
 }

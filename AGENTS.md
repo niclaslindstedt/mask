@@ -102,8 +102,9 @@ stores ("store stays in the app"):
   `SettingsModal.tsx` + `settings/`, `SearchOverlay.tsx` — the screens.
 - `src/generic/` — **framework candidates**: placeholder schemes, text
   scanning / substitution, Luhn, file → text extraction (including the pass
-  that lays a PDF's positioned runs back out into paragraphs), a PDF page
-  renderer and the viewer over it, an IndexedDB blob vault, and the
+  that lays a PDF's positioned runs back out into paragraphs, and the one that
+  translates a Word package's XML), a ZIP reader and a small XML reader, a PDF
+  page renderer and the viewer over it, an IndexedDB blob vault, and the
   components.
   Written to the framework's rules (no domain names, labels injected); nothing
   here imports from `src/app/`. Lift into the framework when a second app
@@ -229,6 +230,9 @@ They carry the `oss-spec:allow-large-file` marker and are Prettier-ignored.
   pdf.js over the PDF there; because the app's worker URL is a bundler URL, it
   points `pdfjs.GlobalWorkerOptions.workerSrc` at the copy in `node_modules`
   first — so that test needs `make install` to have run.
+- A Word fixture is built rather than committed: `tests/fixtures/zip.ts` is a
+  ZIP _writer_ (the app only ever reads archives), so `docx_test.ts` spells its
+  document out as the XML parts Word would have written.
 
 ## Source file size
 
