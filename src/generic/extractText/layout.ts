@@ -80,6 +80,10 @@ export type Paragraph = {
   height: number;
   /** Printed lines the paragraph was reflowed from. */
   lines: number;
+  /** A running header or footer rather than prose — see
+   *  {@link partitionRunningFurniture}. A caller writing the document out marks
+   *  these as the aside they are instead of running them in with the text. */
+  furniture?: boolean;
 };
 
 /** Two baselines this close are the same line. Kept tight on purpose: merging
@@ -513,20 +517,34 @@ function isDetached(
   return gap > pitchOf(page) * PARAGRAPH_GAP_RATIO;
 }
 
-/** Drop the running headers and footers: the page-number bar a producer
- *  repeats at the same height on page after page. They are the one part of a
- *  page that isn't prose — left in, they cut a sentence in half at every page
- *  break, and a reader (or a detector) has to step over them.
+/** One page, with its running furniture told apart from what it says. */
+export type PageParts = {
+  /** The running header, top-down. */
+  head: TextLine[];
+  /** Everything between the two — the page's own text. */
+  body: TextLine[];
+  /** The running footer, top-down. */
+  foot: TextLine[];
+};
+
+/** Tell the running headers and footers from the body: the page-number bar a
+ *  producer repeats at the same height on page after page. They are the one
+ *  part of a page that isn't prose — run in with it, they cut a sentence in
+ *  half at every page break, and a reader (or a detector) has to step over
+ *  them — so a caller lays out `body` as the text and writes `head` and `foot`
+ *  out as the aside they are.
  *
  *  Two things have to hold before a line is treated as furniture rather than
  *  as content, and body text does neither: it repeats, page numbers aside, at
  *  the same height on at least three pages, and it stands clear of the text
  *  block on its own page. */
-export function stripRunningFurniture(
+export function partitionRunningFurniture(
   pages: readonly (readonly TextLine[])[],
-): TextLine[][] {
+): PageParts[] {
   const kept = pages.map((page) => [...page]);
-  if (pages.length < MIN_FURNITURE_PAGES) return kept;
+  if (pages.length < MIN_FURNITURE_PAGES) {
+    return kept.map((body) => ({ head: [], body, foot: [] }));
+  }
 
   const seen = new Map<string, number>();
   for (const page of kept) {
@@ -555,7 +573,11 @@ export function stripRunningFurniture(
     ) {
       tail -= 1;
     }
-    return page.slice(head, tail);
+    return {
+      head: page.slice(0, head),
+      body: page.slice(head, tail),
+      foot: page.slice(tail),
+    };
   });
 }
 
@@ -582,32 +604,57 @@ export function layoutDocumentText(
   return layoutDocumentLines(pages.map((runs) => groupRunsIntoLines(runs)));
 }
 
+/** One furniture line as a paragraph of its own, flagged so whatever writes
+ *  the document out can set it apart from the prose around it. */
+function furnitureParagraph(line: TextLine): Paragraph {
+  return {
+    text: line.text,
+    segments: line.segments.map((segment) => ({ ...segment })),
+    height: line.height,
+    lines: 1,
+    furniture: true,
+  };
+}
+
 /** The same, from pages already grouped into lines — what a caller reading a
- *  long document wants, so a page's runs can be dropped as it is read. */
+ *  long document wants, so a page's runs can be dropped as it is read.
+ *
+ *  The running header and footer are kept, flagged rather than run in with the
+ *  text, and a paragraph the page break cut in half is joined back onto the
+ *  last paragraph of *prose* — the furniture standing between the halves is
+ *  where it was drawn, not part of the sentence. */
 export function layoutDocumentParagraphs(
   pages: readonly (readonly TextLine[])[],
 ): Paragraph[] {
   const paragraphs: Paragraph[] = [];
-  for (const page of stripRunningFurniture(pages)) {
-    const laid = layoutLinesStyled(page);
-    const previous = paragraphs[paragraphs.length - 1];
-    if (
-      previous !== undefined &&
+  // The paragraph a sentence running past the page break carries on into.
+  // Held apart from the end of the list, which is a footer as often as not.
+  let prose: Paragraph | null = null;
+  for (const { head, body, foot } of partitionRunningFurniture(pages)) {
+    for (const line of head) paragraphs.push(furnitureParagraph(line));
+    const laid = layoutLinesStyled(body);
+    // Annotated, both of these: the value each takes is decided from `prose`,
+    // which the next line assigns from them, and TypeScript will not infer its
+    // way around that loop.
+    const carried: Paragraph | null =
+      prose !== null &&
       laid.length > 0 &&
-      continuesAcrossPages(previous.text, laid[0]!.text)
-    ) {
-      const carried = laid[0]!;
-      previous.segments = appendWrappedSegments(
-        previous.segments,
-        carried.segments,
-      );
-      previous.text = segmentsText(previous.segments);
-      previous.height = Math.max(previous.height, carried.height);
-      previous.lines += carried.lines;
-      paragraphs.push(...laid.slice(1));
-    } else {
-      paragraphs.push(...laid);
+      continuesAcrossPages(prose.text, laid[0]!.text)
+        ? laid[0]!
+        : null;
+    if (carried && prose) {
+      prose.segments = appendWrappedSegments(prose.segments, carried.segments);
+      prose.text = segmentsText(prose.segments);
+      prose.height = Math.max(prose.height, carried.height);
+      prose.lines += carried.lines;
     }
+    const kept: Paragraph[] = carried ? laid.slice(1) : laid;
+    paragraphs.push(...kept);
+    // A page whose whole text was carried onto the previous paragraph leaves
+    // that paragraph the one still open — the carried copy is no longer in the
+    // list, so it must never become the next page's anchor.
+    prose = kept[kept.length - 1] ?? prose;
+    for (const line of foot) paragraphs.push(furnitureParagraph(line));
   }
   return paragraphs;
 }

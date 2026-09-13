@@ -202,6 +202,8 @@ export const en = {
     zoomIn: "Zoom in",
     zoomOut: "Zoom out",
     zoomReset: "Fit the width",
+    fullscreenEnter: "Full screen",
+    fullscreenExit: "Leave full screen",
     sourceFile: "Uploaded file",
     sourcePaste: "Pasted text",
     sourceSample: "Sample document",

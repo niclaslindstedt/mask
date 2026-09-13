@@ -34,6 +34,15 @@ function textOps(
 }
 
 describe("laying Markdown out on paper", () => {
+  it("never sets a comment line on the page", () => {
+    // The furniture an extracted document carries as `<!-- … -->` is an aside
+    // to whoever reads the source, not something to print.
+    const layout = lay(
+      "<!-- HÖGSTA DOMSTOLEN Sida 2 -->\n\nEn rad brödtext.\n\n<!-- Sidfot -->",
+    );
+    expect(texts(layout)).toEqual(["En rad brödtext."]);
+  });
+
   it("sets a heading bigger and bolder than the body", () => {
     const layout = lay("# Rubrik\n\nEn rad brödtext.");
     const [heading, body] = textOps(layout);

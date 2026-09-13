@@ -199,6 +199,56 @@ describe("list items", () => {
   });
 });
 
+describe("running furniture", () => {
+  it("writes a header as a comment rather than as prose", () => {
+    expect(
+      paragraphMarkdown(
+        {
+          text: "HÖGSTA DOMSTOLEN T 4623-21 Sida 2",
+          segments: [
+            {
+              text: "HÖGSTA DOMSTOLEN T 4623-21 Sida 2",
+              bold: true,
+              italic: false,
+            },
+          ],
+          // Set large and wholly in bold — both ways a paragraph asks to be a
+          // heading, and neither counts once it is furniture.
+          height: BODY * 2,
+          lines: 1,
+          furniture: true,
+        },
+        { bodyHeight: BODY },
+      ),
+    ).toBe("<!-- HÖGSTA DOMSTOLEN T 4623-21 Sida 2 -->");
+  });
+
+  it("keeps a document set wholly in bold emphatic when only its furniture is", () => {
+    // The furniture never votes on whether bold says anything in this
+    // document: a footer in bold must not strip the emphasis from the prose.
+    const out = paragraphsToMarkdown([
+      {
+        text: "Sidfot",
+        segments: [{ text: "Sidfot", bold: true, italic: false }],
+        height: BODY,
+        lines: 1,
+        furniture: true,
+      },
+      {
+        text: "Ett stycke med fetstil i.",
+        segments: [
+          { text: "Ett stycke med ", bold: false, italic: false },
+          { text: "fetstil", bold: true, italic: false },
+          { text: " i.", bold: false, italic: false },
+        ],
+        height: BODY,
+        lines: 1,
+      },
+    ]);
+    expect(out).toBe("<!-- Sidfot -->\n\nEtt stycke med **fetstil** i.");
+  });
+});
+
 describe("the body size", () => {
   it("is the size carrying the most text, not the largest on the page", () => {
     const lines = [

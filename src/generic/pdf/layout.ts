@@ -20,6 +20,8 @@ import {
   type LineBlock,
 } from "@niclaslindstedt/oss-framework/markdown";
 
+import { isCommentLine } from "../htmlComments.ts";
+
 // ── The contract with the writer ────────────────────────────────────────────
 
 /** One concrete face, as the writer must set it. */
@@ -375,7 +377,12 @@ export function layoutPdf(input: PdfLayoutInput): PdfLayout {
     gap(HEADING_GAP_BELOW);
   }
 
-  const blocks = classifyLines(input.markdown);
+  // A comment is an aside to whoever reads the source, never something to set
+  // on paper — a page laid out with `<!-- … -->` printed across it is a page
+  // showing its own syntax.
+  const blocks = classifyLines(input.markdown).filter(
+    (block) => !(block.kind === "paragraph" && isCommentLine(block.raw)),
+  );
   blocks.forEach((block, index) => {
     drawBlock(block, blocks[index - 1]);
   });

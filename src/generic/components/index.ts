@@ -6,6 +6,11 @@ export {
   type DownloadMenuLabels,
 } from "./DownloadMenu.tsx";
 export { FileDropZone, type FileDropZoneLabels } from "./FileDropZone.tsx";
+export {
+  FullscreenButton,
+  FullscreenLayer,
+  type FullscreenLabels,
+} from "./Fullscreen.tsx";
 export { GlyphButton, type GlyphButtonProps } from "./GlyphButton.tsx";
 export { MarkdownText } from "./MarkdownText.tsx";
 export { PdfView, type PdfViewLabels } from "./PdfView.tsx";

@@ -200,6 +200,8 @@ export const sv: Catalog = {
     zoomIn: "Zooma in",
     zoomOut: "Zooma ut",
     zoomReset: "Anpassa till bredden",
+    fullscreenEnter: "Helskärm",
+    fullscreenExit: "Lämna helskärm",
     sourceFile: "Uppladdad fil",
     sourcePaste: "Inklistrad text",
     sourceSample: "Exempeldokument",

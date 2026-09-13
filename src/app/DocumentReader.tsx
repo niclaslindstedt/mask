@@ -30,6 +30,9 @@ import type { Doc } from "./types.ts";
 //
 // A document whose file isn't held — one pasted in, one added before files
 // were kept, or a browser that refuses the vault — opens as that text alone.
+//
+// Either face can take the whole screen, which on a phone is the difference
+// between reading a judgment and scrolling through a letterbox.
 
 type Props = {
   doc: Doc | null;
@@ -46,6 +49,10 @@ export function DocumentReader({ doc, onClose }: Props) {
     file: t("reader.sourceFile"),
     paste: t("reader.sourcePaste"),
     sample: t("reader.sourceSample"),
+  };
+  const fullscreenLabels = {
+    enter: t("reader.fullscreenEnter"),
+    exit: t("reader.fullscreenExit"),
   };
 
   // The document's own file, if one is kept for it. Cleared first, so the
@@ -139,6 +146,7 @@ export function DocumentReader({ doc, onClose }: Props) {
                 zoomIn: t("reader.zoomIn"),
                 zoomOut: t("reader.zoomOut"),
                 zoomReset: t("reader.zoomReset"),
+                fullscreen: fullscreenLabels,
               }}
             />
           ) : (
@@ -156,6 +164,7 @@ export function DocumentReader({ doc, onClose }: Props) {
                 copied: t("common.copied"),
                 count: (n) => t("common.characters", { n: String(n) }),
                 empty: t("reader.empty"),
+                fullscreen: fullscreenLabels,
               }}
               onCopied={() =>
                 defaultToastStore.push({
