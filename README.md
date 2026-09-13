@@ -2,7 +2,8 @@
 
 Mask personal data before it reaches an LLM. A local-first PWA built on
 [`@niclaslindstedt/oss-framework`](https://github.com/niclaslindstedt/oss-framework)
-for a Swedish, public-sector context: upload a text or PDF, confirm the names,
+for a Swedish, public-sector context: upload a Word file, a PDF or text,
+confirm the names,
 street addresses, cities, postal codes, phone numbers and personal identity
 numbers it found, copy the masked text into your LLM, and paste the answer back
 to restore the real values. Nothing leaves your browser.
@@ -84,13 +85,15 @@ onto the intake (or press **Paste text**), review what was found, press
 - **Projects** — the side menu lists them; `+` creates one. A project holds
   documents and the placeholders they share. Right-click (or swipe) a row to
   rename or delete it. Everything is one Undo away (Ctrl/Cmd-Z).
-- **Documents** — drop a PDF or text file onto the intake, press it to browse,
-  or **Paste text**. PDFs are read in the browser and laid back out into
-  paragraphs — wrapped lines rejoined, hyphenated words put back together,
-  running headers set aside as comments, footers read in their place; a scanned
-  PDF needs OCR first. The page's own structure comes with it: headings, bold and italics are
-  written back out as Markdown, so the model on the other end can still tell a
-  section title from a sentence.
+- **Documents** — drop a Word file (`.docx`), a PDF or a text file onto the
+  intake, press it to browse, or **Paste text**. PDFs are read in the browser
+  and laid back out into paragraphs — wrapped lines rejoined, hyphenated words
+  put back together, running headers set aside as comments, footers read in
+  their place; a scanned PDF needs OCR first. A Word file needs none of that
+  guesswork: its own XML says which paragraph is a heading, which run is bold,
+  and which list is numbered, and its tables come across as tables. Either
+  way the document's structure comes with it, written back out as Markdown, so
+  the model on the other end can still tell a section title from a sentence.
 - **Review** — every candidate has a checkbox, a kind, and the placeholder it
   will get (or the one it already has). Untick a false positive, change a kind,
   type a missed value, or mark it in the preview: marking text offers **Mask**,
@@ -98,8 +101,9 @@ onto the intake (or press **Paste text**), review what was found, press
   it. Every kind picker ends in **Custom type…**, which takes a name of your own
   for that value. Pressing a document's name in the list — or **Read source**
   above the preview — opens it unmarked, to read rather than review: a PDF as
-  its own pages, fitted to the width and pinchable, with its extracted text one
-  press away. Either view takes the whole screen from its header.
+  its own pages, fitted to the width and pinchable, a Word file as those same
+  pages typeset from its text, with the extracted text one press away. Either
+  view takes the whole screen from its header.
 - **Confirm and mask** — produces the masked text in the output pane, shown
   formatted rather than as its own Markdown, with a copy button and a
   **Download** menu beside it (PDF or Markdown file). Confirm again after

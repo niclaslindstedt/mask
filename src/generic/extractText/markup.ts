@@ -62,7 +62,7 @@ export type MarkupOptions = {
 /** Whether every segment carrying text is bold. A document set wholly in one
  *  bold face has no emphasis to recover — marking all of it up would only add
  *  noise — so `paragraphsToMarkdown` drops bold when this holds document-wide. */
-function allBold(segments: readonly StyledSegment[]): boolean {
+export function allBold(segments: readonly StyledSegment[]): boolean {
   const inked = segments.filter((segment) => segment.text.trim() !== "");
   return inked.length > 0 && inked.every((segment) => segment.bold);
 }
@@ -102,6 +102,16 @@ function emphasise(segment: StyledSegment, emphatic: boolean): string {
   if (emphatic && segment.italic) out = `*${out}*`;
   if (emphatic && segment.bold) out = `**${out}**`;
   return `${lead}${out}${trail}`;
+}
+
+/** A run of segments as Markdown, each one wearing the emphasis its face
+ *  asks for. `emphatic` is the document-wide verdict from {@link allBold} — a
+ *  document set wholly in one bold face has no emphasis to recover. */
+export function segmentsMarkdown(
+  segments: readonly StyledSegment[],
+  emphatic = true,
+): string {
+  return segments.map((segment) => emphasise(segment, emphatic)).join("");
 }
 
 /** The Markdown marker a paragraph's own leading list glyph maps to, and how
@@ -148,7 +158,7 @@ export function paragraphMarkdown(
   const segments = marker
     ? dropLeading(paragraph.segments, marker.consumed)
     : paragraph.segments;
-  const body = segments.map((segment) => emphasise(segment, emphatic)).join("");
+  const body = segmentsMarkdown(segments, emphatic);
 
   // A list item is never a heading, whatever size it is set at.
   if (marker) return marker.prefix + body;

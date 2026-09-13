@@ -1,11 +1,14 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  EXTRACT_ACCEPT,
+  LegacyFormatError,
   UnsupportedFileError,
   extractTextFromFile,
   fileExtension,
   isPdfFile,
   isTextFile,
+  isWordFile,
   normalizeNewlines,
 } from "../src/generic/extractText/index.ts";
 
@@ -18,6 +21,32 @@ describe("extractText routing", () => {
     expect(isTextFile({ name: "notes.md", type: "" })).toBe(true);
     expect(isTextFile({ name: "x", type: "text/plain" })).toBe(true);
     expect(isTextFile({ name: "x.exe", type: "" })).toBe(false);
+    expect(isWordFile({ name: "Beslut.DOCX", type: "" })).toBe(true);
+    expect(
+      isWordFile({
+        name: "no-extension",
+        type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      }),
+    ).toBe(true);
+    expect(isWordFile({ name: "gammalt.doc", type: "" })).toBe(false);
+  });
+
+  it("offers every format it reads to the file picker", () => {
+    for (const extension of [".pdf", ".docx", ".txt", ".md"]) {
+      expect(EXTRACT_ACCEPT.split(",")).toContain(extension);
+    }
+  });
+
+  it("names the format to save a pre-2007 Word file as", async () => {
+    const file = new File([new Uint8Array([0xd0, 0xcf])], "gammalt.doc", {
+      type: "application/msword",
+    });
+    await expect(extractTextFromFile(file)).rejects.toBeInstanceOf(
+      LegacyFormatError,
+    );
+    await expect(extractTextFromFile(file)).rejects.toMatchObject({
+      instead: ".docx",
+    });
   });
 
   it("reads a text file and normalises newlines", async () => {

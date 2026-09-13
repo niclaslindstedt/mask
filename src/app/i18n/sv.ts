@@ -114,7 +114,7 @@ export const sv: Catalog = {
     heading: "Dokument",
     dropTitle: "Släpp en fil här",
     dropCompact: "Lägg till fil",
-    dropHint: "PDF eller text – eller tryck för att bläddra",
+    dropHint: "Word, PDF eller text – eller tryck för att bläddra",
     dropActive: "Släpp för att lägga till",
     pasteText: "Klistra in text",
     pasteTitle: "Klistra in text",
@@ -133,7 +133,9 @@ export const sv: Catalog = {
     pages: "{n} sidor",
     extracting: "Läser {name}…",
     extractFailed: "Kunde inte läsa {name}: {reason}",
-    unsupported: "{name} är varken PDF eller textfil.",
+    unsupported: "{name} är varken Word-, PDF- eller textfil.",
+    unsupportedLegacy:
+      "{name} är en gammal Word-fil – öppna den och spara den som {instead} först.",
     added: "La till {name}",
     emptyText:
       "{name} innehåller ingen text att maskera – en skannad PDF behöver OCR först.",
@@ -206,6 +208,9 @@ export const sv: Catalog = {
     sourcePaste: "Inklistrad text",
     sourceSample: "Exempeldokument",
     formatPdf: "PDF",
+    formatWord: "Word",
+    typesetNote:
+      "En Word-fil har inga egna sidor – det här är dess text satt av Mask, inte Words egen layout.",
     empty: "Dokumentet innehåller ingen text.",
   },
   variables: {

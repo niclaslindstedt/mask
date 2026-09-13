@@ -13,12 +13,13 @@
 
 ## Features
 
-- Upload a PDF or text file, or paste text; detectors propose what to mask
-- A PDF's headings, bold and italics survive as Markdown, shown formatted
+- Upload a Word file, a PDF or a text file, or paste text; detectors propose
+  what to mask
+- Headings, bold, italics, lists and tables survive as Markdown, shown formatted
 - Download the masked text as a PDF or a Markdown file
 - Review every candidate, fix its kind, add what was missed, confirm
 - Mark text in a document to mask it, always mask it, or never mask it again
-- Read any document's source text unmarked, beside the review
+- Read any document unmarked beside the review — as its own pages, or as text
 - Projects remember placeholders so the same person gets the same one everywhere
 - Global always-mask / never-mask lists and custom regex patterns
 - Placeholder styles: AAA, aaa, $1, NAME1, [NAME 1], {{name1}}

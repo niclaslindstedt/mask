@@ -85,7 +85,8 @@ Two more stores sit outside `localStorage`: the IndexedDB database
 `mask:sources` holds the PDFs you uploaded, keyed by document id, so the
 reader can draw their pages (files whose document has been deleted are swept
 at the next start), and `oss:folder-handles` holds the permission grant for a
-picked folder so it survives a reload.
+picked folder so it survives a reload. A Word file is not kept: its pages are
+typeset from the text that was read out of it, so there is nothing to store.
 
 Settings → Developer → **Erase all local data** clears every one of them, the
 IndexedDB databases included. A folder you picked is not touched — its files

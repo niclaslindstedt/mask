@@ -19,7 +19,10 @@ src/
 │   ├── checkDigit.ts     Luhn
 │   ├── extractText/      file → text (PDF through a lazy pdf.js chunk,
 │   │                     laid back out into paragraphs by `layout.ts`, then
-│   │                     written back out as Markdown by `markup.ts`)
+│   │                     written back out as Markdown by `markup.ts`;
+│   │                     Word through the equally lazy `docx.ts`)
+│   ├── zip.ts            reading a ZIP archive's directory and members
+│   ├── xml.ts            a small XML reader: a string in, a tree out
 │   ├── pdf/              PDF both ways (a pure typesetter + a lazy jsPDF
 │   │                     writer; page shapes + a lazy pdf.js page renderer)
 │   ├── blobVault.ts      a keyed store of blobs in IndexedDB, best-effort throughout
@@ -190,9 +193,10 @@ The entry chunk carries the shell, the stores, the detectors' code, and the
 English catalog. Deferred behind `import()`: the Swedish catalog, the
 dictionaries data chunk (on first review), pdf.js (on the first PDF uploaded
 or opened — one chunk shared by the text extraction and the page renderer),
-the PDF _writer_ (on the first PDF download), the Settings modal, the changelog
-payload, and the developer test-data chunk (on the first time the toggle turns
-on).
+the Word reader with the ZIP and XML readers under it (on the first `.docx`
+uploaded), the PDF _writer_ (on the first PDF download, and on the first Word
+document opened as pages), the Settings modal, the changelog payload, and the
+developer test-data chunk (on the first time the toggle turns on).
 
 `main.tsx` mounts one of two pages by pathname — the app, or the privacy policy
 at `/privacy/` — and both sit behind an `import()`, so opening the policy never
@@ -282,6 +286,40 @@ unread.
 `tests/pdfRoundTrip_test.ts` writes a PDF with real bold and italic faces and
 reads it back, which is the only check that proves the face survives a file.
 
+### Reading a Word document
+
+A `.docx` needs none of that archaeology. It is a ZIP of XML parts, and the
+XML still knows what it is: this paragraph is Heading 2, this run is bold, this
+item belongs to list 3 at depth 1. So `extractText/docx.ts` translates rather
+than infers, on two readers of its own — `generic/zip.ts` (the central
+directory and `DecompressionStream("deflate-raw")`, the platform's own zlib)
+and `generic/xml.ts` (a small pull parser, since `DOMParser` is a browser-only
+thing and these run under vitest too).
+
+- **Headings from the style.** Word's style _ids_ are localised — a Swedish
+  template's heading is `Rubrik1` — but every built-in style carries its
+  canonical English name in `word/styles.xml`, so the level is read from there,
+  with the id and `w:outlineLvl` as fallbacks.
+- **Emphasis from the run**, direct (`w:b`, `w:i`) or through a character style
+  (`Strong`, `Emphasis`). Direct formatting wins over the style, so a run that
+  turns bold off is not bold. Adjacent runs in the same face are merged first —
+  Word splits a sentence at every revision boundary, and marking each piece up
+  on its own would write `**a****b**`.
+- **Lists from `word/numbering.xml`**, which says whether a list is bulleted or
+  numbered; the item says how deep it sits, and the depth becomes the Markdown
+  indent.
+- **Tables as Markdown tables**, pipes escaped — structure a language model
+  reads, where a flattened run of cells reads as nonsense.
+- **Headers and footers as HTML comments**, exactly as the PDF pass writes a
+  running header, so a case number in the letterhead is still masked.
+
+Tracked changes are taken as accepted (`w:ins` is text, `w:del` is not), field
+codes are dropped, and a content control gives up its content but not its own
+label. `tests/docx_test.ts` builds a document with all of it and reads it back;
+`tests/zip_test.ts` and `tests/xml_test.ts` cover the two readers under it.
+Word's pre-2007 `.doc` is a different format entirely and is refused by name,
+with "save it as .docx" rather than "unsupported file".
+
 ### Writing a PDF back out
 
 `generic/pdf/` is the same split in the other direction: `layout.ts` is a pure
@@ -293,7 +331,7 @@ the PDF standard fonts, which every reader already has and which encode
 Latin-1, so an ordinary Swedish document costs the file nothing in embedded
 faces.
 
-### Showing a PDF as a PDF
+### Showing a document as pages
 
 Reading a document back as paragraphs loses what a page's layout said —
 columns, tables, a stamp, a signature — so the reader shows the file itself.
@@ -308,6 +346,14 @@ Every operation on the vault resolves rather than throws: a browser that
 refuses IndexedDB answers "nothing stored", and the reader falls back to the
 extracted text — which is what every document had before, and what the
 detectors read either way.
+
+A Word file has no pages to keep: it is a flow of paragraphs that only becomes
+pages when something paginates it, and nothing in a browser renders one without
+a word processor's worth of code. So `app/documentPages.ts` typesets it
+instead — the same Markdown the extractor pulled out of it, through the app's
+own PDF writer, into the same viewer. The layout is the typesetter's rather
+than Word's, and the reader says so; what the page shows is exactly what the
+detectors read. The writer loads on the open, not at mount.
 
 `generic/pdf/pages.ts` holds the page shapes and the fit arithmetic, and
 `generic/pdf/render.ts` the pdf.js half that paints a page onto a canvas.
