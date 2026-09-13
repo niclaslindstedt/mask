@@ -92,9 +92,18 @@ describe("extracting a real judgment", () => {
     );
   });
 
-  it("drops the running header that repeats on every page", () => {
-    expect(text).not.toContain("HÖGSTA DOMSTOLEN B 4808-23");
-    // The case number is still in the document where it was typed.
+  it("writes the running header out as a comment on every page", () => {
+    // Kept, because it says which page a passage came from — and out of the
+    // prose, because it is not what the page says.
+    expect(paragraphs.filter((p) => p.startsWith("<!--"))).toEqual([
+      "<!-- HÖGSTA DOMSTOLEN B 4808-23 Sida 2 -->",
+      "<!-- HÖGSTA DOMSTOLEN B 4808-23 Sida 3 -->",
+      "<!-- HÖGSTA DOMSTOLEN B 4808-23 Sida 4 -->",
+      "<!-- HÖGSTA DOMSTOLEN B 4808-23 Sida 5 -->",
+    ]);
+    // No sentence was cut in half by it, and the case number is still in the
+    // document where it was typed.
+    expect(text).not.toMatch(/^(?!<!--).*HÖGSTA DOMSTOLEN B 4808-23/m);
     expect(text).toContain(
       "meddelad i Stockholm den 21 december 2023 B 4808-23",
     );

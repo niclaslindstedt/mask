@@ -23,10 +23,12 @@ src/
 │   ├── pdf/              PDF both ways (a pure typesetter + a lazy jsPDF
 │   │                     writer; page shapes + a lazy pdf.js page renderer)
 │   ├── blobVault.ts      a keyed store of blobs in IndexedDB, best-effort throughout
+│   ├── htmlComments.ts   Markdown's only comment: write one, spot one, read one
+│   ├── pinchZoom.ts      two fingers (or a trackpad's pinch) as a zoom
 │   ├── collapseOnScroll.ts  collapse a scroll container's header once it is scrolled past
 │   └── components/       FileDropZone, StringListEditor, GlyphButton, SpanText,
 │                         CopyablePane, MarkdownText, PdfView, DownloadMenu,
-│                         SelectOrCreate
+│                         SelectOrCreate, Fullscreen
 └── app/                the domain
     ├── types.ts          Project / Doc / Variable / GlobalRules
     ├── detectors/        the Swedish-context detectors + generated dictionaries
@@ -226,8 +228,10 @@ but feed it pdf.js's positioned runs:
    hyphen ("multi-" / "verktyg") is put back together; a hyphen the writer
    typed ("A-traktor") is kept.
 4. Across pages, a header or footer that repeats at the same height on three or
-   more pages — page numbers aside — is dropped, and a sentence the page break
-   cut in half is rejoined.
+   more pages — page numbers aside — is told apart from the body and marked as
+   furniture, and a sentence the page break cut in half is rejoined across it.
+   The furniture is written out as an HTML comment rather than dropped (see
+   below), so the page it named is still knowable.
 
 Every threshold is scaled from the page's own measurements (its leading, its
 margins, the font height) rather than fixed in points, so the pass does not
@@ -256,6 +260,15 @@ sentence. So the reflowed paragraphs go through one more pure pass,
   one bold face is left unmarked: bold says nothing when everything is bold.
 - **Bullets from the glyph.** A paragraph opening `•`, `–` or `*` becomes a
   real `-` item; a numbered one already spells itself.
+- **Furniture as a comment.** A running header or footer is written
+  `<!-- HÖGSTA DOMSTOLEN B 4808-23 Sida 2 -->` — Markdown has no comment of its
+  own, and an HTML one is what every renderer and every model already reads as
+  "this was on the page, but it is not the text". It is still masked like any
+  other text, the reader draws it as a muted aside rather than as its syntax
+  (`generic/components/MarkdownText.tsx`), and the PDF writer leaves it off the
+  page (`generic/pdf/layout.ts`). `generic/htmlComments.ts` owns the three
+  functions all of that shares — a comment's body may not carry `--`, so a
+  hyphen run is spaced out on the way in.
 
 Which face a run was drawn in is not in the text stream — pdf.js only resolves
 a page's fonts while it builds the page's _operator list_, so `pdf.ts` builds

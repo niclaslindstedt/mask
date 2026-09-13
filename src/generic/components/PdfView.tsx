@@ -1,5 +1,11 @@
 // SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
-import { useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 
 import { SpinnerIcon } from "@niclaslindstedt/oss-framework/components";
 
@@ -9,6 +15,12 @@ import {
   type OpenPdf,
   type RenderablePage,
 } from "../pdf/pages.ts";
+import { usePinchZoom } from "../pinchZoom.ts";
+import {
+  FullscreenButton,
+  FullscreenLayer,
+  type FullscreenLabels,
+} from "./Fullscreen.tsx";
 
 // A PDF, shown as its pages rather than as the text inside them.
 //
@@ -19,9 +31,10 @@ import {
 // downloaded until a PDF is actually opened.
 //
 // Width, not paper size, decides the scale: a page is fitted to the column it
-// is shown in, and the zoom control multiplies that, so the default is
-// readable on a phone and the pinch every PDF reader has is replaced by
-// buttons (the app's own viewport turns pinch-zoom off).
+// is shown in, and the zoom multiplies that, so the default is readable on a
+// phone. Zooming is by pinch (the app's own viewport turns the browser's off,
+// so `usePinchZoom` gives it back here) or by the buttons beside the readout,
+// and either way the point under the fingers is the point that stays put.
 
 export type PdfViewLabels = {
   /** While the document is being opened. */
@@ -34,6 +47,8 @@ export type PdfViewLabels = {
   zoomOut: string;
   /** Back to fitting the width. */
   zoomReset: string;
+  /** Given, the header offers to take the pages over the whole screen. */
+  fullscreen?: FullscreenLabels;
 };
 
 type Props = {
@@ -43,14 +58,30 @@ type Props = {
   /** Shown at the left of the header. */
   title?: string;
   className?: string;
-  /** Height cap for the scrolling page column (a Tailwind `max-h-*` class). */
+  /** Height cap for the scrolling page column (a Tailwind `max-h-*` class).
+   *  Ignored while the pages have the screen to themselves. */
   bodyClassName?: string;
 };
 
-/** Zoom bounds and step. 1 is "fits the column". */
-const MIN_ZOOM = 1;
-const MAX_ZOOM = 4;
+/** Zoom bounds and step. 1 is "fits the column"; below it a whole page fits on
+ *  a phone, which is the other thing a reader wants to see. */
+const MIN_ZOOM = 0.4;
+const MAX_ZOOM = 6;
 const ZOOM_STEP = 1.25;
+
+const clampZoom = (zoom: number) =>
+  Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, zoom));
+
+/** What a zoom has to know to keep a point where it was: where the point is in
+ *  the scroller, and how far it had scrolled at what size. */
+type ZoomAnchor = {
+  x: number;
+  y: number;
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+};
 
 export function PdfView({
   file,
@@ -63,8 +94,18 @@ export function PdfView({
   const [firstPage, setFirstPage] = useState<RenderablePage | null>(null);
   const [failed, setFailed] = useState(false);
   const [zoom, setZoom] = useState(1);
+  const [full, setFull] = useState(false);
+  // The scrolling element twice over: as state, because what the pages are
+  // fitted to and observed against changes with it, and as a ref, because
+  // putting the reader back where they were means writing to it.
   const [scroller, setScroller] = useState<HTMLDivElement | null>(null);
+  const scrollerRef = useRef<HTMLDivElement | null>(null);
   const [columnWidth, setColumnWidth] = useState(0);
+  const anchor = useRef<ZoomAnchor | null>(null);
+  /** Where in the document the reader is, as a fraction of its extent. */
+  const position = useRef({ x: 0, y: 0 });
+  /** Set while a fresh scroller has to be put back where the last one was. */
+  const resume = useRef<{ x: number; y: number } | null>(null);
 
   // Open the document, and hold its first page for the size every other page
   // is drawn at before it has been read — nearly every document is one paper
@@ -99,7 +140,9 @@ export function PdfView({
 
   // The width a page is fitted to. Measured rather than assumed: the modal
   // this sits in is as wide as the phone one moment and 52rem the next.
-  useEffect(() => {
+  // Measured *before the paint*, so going fullscreen never shows a frame of
+  // pages at the old width.
+  useLayoutEffect(() => {
     if (!scroller) return;
     const measure = () => setColumnWidth(scroller.clientWidth - 24);
     measure();
@@ -108,75 +151,155 @@ export function PdfView({
     return () => observer.disconnect();
   }, [scroller]);
 
-  const zoomBy = (factor: number) =>
-    setZoom((z) => Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, z * factor)));
+  // Going fullscreen and back re-creates the scrolling element — it is drawn
+  // over the app rather than in place — so the reader is put back where they
+  // were once the new one has been measured. Both passes (the old width, then
+  // the measured one) land here; the frame ends with the right one.
+  useLayoutEffect(() => {
+    const at = resume.current;
+    const el = scrollerRef.current;
+    if (!el || at === null) return;
+    el.scrollLeft = at.x * el.scrollWidth;
+    el.scrollTop = at.y * el.scrollHeight;
+    const id = requestAnimationFrame(() => {
+      resume.current = null;
+    });
+    return () => cancelAnimationFrame(id);
+  }, [scroller, columnWidth]);
+
+  // A zoom keeps the point it happened about where it was: the content grows
+  // by whatever the whole column grew by, and the scroll follows it. Measured
+  // rather than derived, because the captions and the gaps between pages are
+  // the same size at every zoom and the pages are not.
+  useLayoutEffect(() => {
+    const at = anchor.current;
+    anchor.current = null;
+    const el = scrollerRef.current;
+    if (!el || !at) return;
+    const grewX = at.width > 0 ? el.scrollWidth / at.width : 1;
+    const grewY = at.height > 0 ? el.scrollHeight / at.height : 1;
+    el.scrollLeft = (at.left + at.x) * grewX - at.x;
+    el.scrollTop = (at.top + at.y) * grewY - at.y;
+  }, [scroller, zoom]);
+
+  /** Zoom about a point on the screen, or about the middle of the view. */
+  const zoomTo = (next: number, at?: { clientX: number; clientY: number }) => {
+    const el = scrollerRef.current;
+    if (el) {
+      const box = el.getBoundingClientRect();
+      anchor.current = {
+        x: at ? at.clientX - box.left : box.width / 2,
+        y: at ? at.clientY - box.top : box.height / 2,
+        left: el.scrollLeft,
+        top: el.scrollTop,
+        width: el.scrollWidth,
+        height: el.scrollHeight,
+      };
+    }
+    setZoom(clampZoom(next));
+  };
+
+  const attachScroller = useCallback((el: HTMLDivElement | null) => {
+    scrollerRef.current = el;
+    setScroller(el);
+  }, []);
+
+  usePinchZoom(scroller, zoom, zoomTo);
 
   return (
-    <section
-      className={`flex min-h-0 flex-col overflow-hidden rounded-lg border border-line bg-surface ${className}`.trim()}
-    >
-      <header className="flex shrink-0 items-center justify-between gap-2 border-b border-line bg-surface-2 px-3 py-2">
-        <h3 className="min-w-0 truncate text-sm font-semibold text-fg-bright">
-          {title}
-        </h3>
-        <div className="flex shrink-0 items-center gap-1">
-          <ZoomButton
-            label={labels.zoomOut}
-            disabled={zoom <= MIN_ZOOM}
-            onPress={() => zoomBy(1 / ZOOM_STEP)}
-          >
-            −
-          </ZoomButton>
-          <button
-            type="button"
-            aria-label={labels.zoomReset}
-            title={labels.zoomReset}
-            onClick={() => setZoom(1)}
-            className="min-w-12 cursor-pointer rounded px-1 py-1 text-xs text-muted tabular-nums hover:bg-surface-3 hover:text-fg"
-          >
-            {Math.round(zoom * 100)}%
-          </button>
-          <ZoomButton
-            label={labels.zoomIn}
-            disabled={zoom >= MAX_ZOOM}
-            onPress={() => zoomBy(ZOOM_STEP)}
-          >
-            +
-          </ZoomButton>
-        </div>
-      </header>
-      <div
-        ref={setScroller}
-        className={`min-h-0 flex-1 overflow-auto bg-surface-3 p-3 ${bodyClassName}`.trim()}
+    <FullscreenLayer active={full} onExit={() => setFull(false)}>
+      <section
+        className={`flex min-h-0 flex-col overflow-hidden bg-surface ${
+          full ? "flex-1" : "rounded-lg border border-line"
+        } ${className}`.trim()}
       >
-        {failed ? (
-          <p role="alert" className="p-4 text-sm text-danger">
-            {labels.failed}
-          </p>
-        ) : !pdf ? (
-          <p className="flex items-center gap-2 p-4 text-sm text-muted">
-            <SpinnerIcon className="h-4 w-4 animate-spin text-accent" />
-            {labels.loading}
-          </p>
-        ) : (
-          <ol className="flex flex-col items-center gap-4">
-            {Array.from({ length: pdf.pageCount }, (_, i) => (
-              <PdfPageSlot
-                key={i + 1}
-                pdf={pdf}
-                number={i + 1}
-                total={pdf.pageCount}
-                fallback={firstPage}
-                columnWidth={columnWidth}
-                zoom={zoom}
-                root={scroller}
-                labels={labels}
+        <header className="flex shrink-0 items-center justify-between gap-2 border-b border-line bg-surface-2 px-3 py-2">
+          <h3 className="min-w-0 truncate text-sm font-semibold text-fg-bright">
+            {title}
+          </h3>
+          <div className="flex shrink-0 items-center gap-1">
+            <ZoomButton
+              label={labels.zoomOut}
+              disabled={zoom <= MIN_ZOOM}
+              onPress={() => zoomTo(zoom / ZOOM_STEP)}
+            >
+              −
+            </ZoomButton>
+            <button
+              type="button"
+              aria-label={labels.zoomReset}
+              title={labels.zoomReset}
+              onClick={() => zoomTo(1)}
+              className="min-w-12 cursor-pointer rounded px-1 py-1 text-xs text-muted tabular-nums hover:bg-surface-3 hover:text-fg"
+            >
+              {Math.round(zoom * 100)}%
+            </button>
+            <ZoomButton
+              label={labels.zoomIn}
+              disabled={zoom >= MAX_ZOOM}
+              onPress={() => zoomTo(zoom * ZOOM_STEP)}
+            >
+              +
+            </ZoomButton>
+            {labels.fullscreen && (
+              <FullscreenButton
+                active={full}
+                labels={labels.fullscreen}
+                onToggle={() => {
+                  resume.current = position.current;
+                  setFull((on) => !on);
+                }}
               />
-            ))}
-          </ol>
-        )}
-      </div>
-    </section>
+            )}
+          </div>
+        </header>
+        <div
+          ref={attachScroller}
+          onScroll={(e) => {
+            const el = e.currentTarget;
+            position.current = {
+              x: el.scrollWidth > 0 ? el.scrollLeft / el.scrollWidth : 0,
+              y: el.scrollHeight > 0 ? el.scrollTop / el.scrollHeight : 0,
+            };
+          }}
+          // The browser keeps the one-finger pan; the pinch is this view's.
+          style={{ touchAction: "pan-x pan-y" }}
+          className={`min-h-0 flex-1 overflow-auto bg-surface-3 p-3 ${
+            full ? "" : bodyClassName
+          }`.trim()}
+        >
+          {failed ? (
+            <p role="alert" className="p-4 text-sm text-danger">
+              {labels.failed}
+            </p>
+          ) : !pdf ? (
+            <p className="flex items-center gap-2 p-4 text-sm text-muted">
+              <SpinnerIcon className="h-4 w-4 animate-spin text-accent" />
+              {labels.loading}
+            </p>
+          ) : (
+            // As wide as the widest page, and never narrower than the column:
+            // a centred page wider than what holds it would otherwise put half
+            // its left edge out of reach of the scroll.
+            <ol className="flex w-max min-w-full flex-col items-center gap-4">
+              {Array.from({ length: pdf.pageCount }, (_, i) => (
+                <PdfPageSlot
+                  key={i + 1}
+                  pdf={pdf}
+                  number={i + 1}
+                  total={pdf.pageCount}
+                  fallback={firstPage}
+                  columnWidth={columnWidth}
+                  zoom={zoom}
+                  root={scroller}
+                  labels={labels}
+                />
+              ))}
+            </ol>
+          )}
+        </div>
+      </section>
+    </FullscreenLayer>
   );
 }
 

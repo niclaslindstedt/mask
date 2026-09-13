@@ -18,9 +18,14 @@
 //     outside the markers — `**bold**` binds to the word, never to the gap.
 //   * **Bullets** from the glyph. A paragraph opening with a bullet character
 //     becomes a real `-` list item; a numbered one already spells itself.
+//   * **Furniture** as a comment. A running header or footer is not what the
+//     page says, so it is written as the HTML comment Markdown borrows for the
+//     purpose — still there for anyone who wants to know which page a passage
+//     came from, out of the prose for everyone else.
 //
 // Pure: paragraphs in, a string out.
 
+import { htmlComment } from "../htmlComments.ts";
 import type { Paragraph, StyledSegment } from "./layout.ts";
 
 /** How far above the body size a paragraph has to stand to be a heading, per
@@ -134,6 +139,10 @@ export function paragraphMarkdown(
   paragraph: Paragraph,
   options: MarkupOptions & { emphatic?: boolean } = {},
 ): string {
+  // A running header or footer is an aside about the page, never prose: it is
+  // written as a comment whatever it is set in, so neither its size nor its
+  // face can make a heading of it.
+  if (paragraph.furniture) return htmlComment(paragraph.text);
   const emphatic = options.emphatic ?? true;
   const marker = listMarker(paragraph.text);
   const segments = marker
@@ -155,7 +164,9 @@ export function paragraphsToMarkdown(
   paragraphs: readonly Paragraph[],
   options: MarkupOptions = {},
 ): string {
-  const emphatic = !allBold(paragraphs.flatMap((p) => p.segments));
+  const emphatic = !allBold(
+    paragraphs.filter((p) => !p.furniture).flatMap((p) => p.segments),
+  );
   return paragraphs
     .map((paragraph) => paragraphMarkdown(paragraph, { ...options, emphatic }))
     .join("\n\n");

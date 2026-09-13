@@ -87,8 +87,8 @@ onto the intake (or press **Paste text**), review what was found, press
 - **Documents** — drop a PDF or text file onto the intake, press it to browse,
   or **Paste text**. PDFs are read in the browser and laid back out into
   paragraphs — wrapped lines rejoined, hyphenated words put back together,
-  running headers dropped, footers read in their place; a scanned PDF needs OCR
-  first. The page's own structure comes with it: headings, bold and italics are
+  running headers set aside as comments, footers read in their place; a scanned
+  PDF needs OCR first. The page's own structure comes with it: headings, bold and italics are
   written back out as Markdown, so the model on the other end can still tell a
   section title from a sentence.
 - **Review** — every candidate has a checkbox, a kind, and the placeholder it
@@ -98,8 +98,8 @@ onto the intake (or press **Paste text**), review what was found, press
   it. Every kind picker ends in **Custom type…**, which takes a name of your own
   for that value. Pressing a document's name in the list — or **Read source**
   above the preview — opens it unmarked, to read rather than review: a PDF as
-  its own pages, fitted to the width and zoomable, with its extracted text one
-  press away.
+  its own pages, fitted to the width and pinchable, with its extracted text one
+  press away. Either view takes the whole screen from its header.
 - **Confirm and mask** — produces the masked text in the output pane, shown
   formatted rather than as its own Markdown, with a copy button and a
   **Download** menu beside it (PDF or Markdown file). Confirm again after

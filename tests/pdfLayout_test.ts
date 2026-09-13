@@ -3,9 +3,10 @@ import { describe, expect, it } from "vitest";
 import {
   commonLeft,
   groupRunsIntoLines,
+  layoutDocumentParagraphs,
   layoutDocumentText,
   layoutPageText,
-  stripRunningFurniture,
+  partitionRunningFurniture,
   type TextRun,
 } from "../src/generic/extractText/layout.ts";
 
@@ -198,11 +199,45 @@ describe("whole documents", () => {
     }),
   ];
 
-  it("drops a header that repeats on page after page", () => {
+  it("tells a header that repeats on page after page from the body", () => {
     const pages = [1, 2, 3].map((page) => [header(page), ...body(page)]);
-    const text = layoutDocumentText(pages);
-    expect(text).not.toContain("HÖGSTA DOMSTOLEN");
-    expect(text).toContain("Sidan 1 inleds");
+    const parts = partitionRunningFurniture(
+      pages.map((runs) => groupRunsIntoLines(runs)),
+    );
+    expect(parts.map((part) => part.head.map((line) => line.text))).toEqual([
+      ["HÖGSTA DOMSTOLEN Sida 1"],
+      ["HÖGSTA DOMSTOLEN Sida 2"],
+      ["HÖGSTA DOMSTOLEN Sida 3"],
+    ]);
+    expect(parts.every((part) => part.foot.length === 0)).toBe(true);
+    expect(parts[0]!.body.map((line) => line.text)).toEqual([
+      "Sidan 1 inleds med ett stycke som fyller raden ut till",
+      "marginalen, och stycke nummer 1 slutar sedan här.",
+    ]);
+  });
+
+  it("keeps the header out of the prose it stands over", () => {
+    const pages = [1, 2, 3].map((page) => [header(page), ...body(page)]);
+    // Laid out, the header is a paragraph of its own, flagged as furniture —
+    // never run in with the sentence it was drawn above.
+    const laid = layoutDocumentParagraphs(
+      pages.map((runs) => groupRunsIntoLines(runs)),
+    );
+    expect(
+      laid
+        .filter((paragraph) => paragraph.furniture)
+        .map((paragraph) => paragraph.text),
+    ).toEqual([
+      "HÖGSTA DOMSTOLEN Sida 1",
+      "HÖGSTA DOMSTOLEN Sida 2",
+      "HÖGSTA DOMSTOLEN Sida 3",
+    ]);
+    expect(
+      laid.some(
+        (paragraph) =>
+          !paragraph.furniture && paragraph.text.includes("HÖGSTA DOMSTOLEN"),
+      ),
+    ).toBe(false);
   });
 
   it("keeps a repeated line in a document too short to call it furniture", () => {
@@ -255,6 +290,34 @@ describe("whole documents", () => {
     const pages = [[line("Ensam sida", 0, { width: 60 })]].map((page) =>
       groupRunsIntoLines(page),
     );
-    expect(stripRunningFurniture(pages)).toEqual(pages);
+    expect(partitionRunningFurniture(pages)).toEqual(
+      pages.map((page) => ({ head: [], body: page, foot: [] })),
+    );
+  });
+
+  it("puts a sentence back together across a footer and the next header", () => {
+    // The furniture stands between the two halves on paper; the sentence is
+    // still one sentence, and each footer is still at the foot of its page.
+    const pages = [1, 2, 3].map((page) => [
+      line("HÖGSTA DOMSTOLEN Sida " + page, -2),
+      line(`sidan ${page} fortsätter förbi sidbrytningen och hamnar i`, 0),
+      line(`samma stycke som nästa sida inleder med ordet`, 1),
+      line(`Dok.Id ${page}00 Sida ${page}`, 4, { gap: PITCH * 3, width: 90 }),
+    ]);
+    const laid = layoutDocumentParagraphs(
+      pages.map((runs) => groupRunsIntoLines(runs)),
+    );
+    expect(laid.map((paragraph) => paragraph.furniture === true)).toEqual([
+      true,
+      false,
+      true,
+      true,
+      true,
+      true,
+      true,
+    ]);
+    expect(laid[1]!.text).toContain("med ordet sidan 2 fortsätter");
+    expect(laid[1]!.text).toContain("med ordet sidan 3 fortsätter");
+    expect(laid[2]!.text).toBe("Dok.Id 100 Sida 1");
   });
 });

@@ -46,11 +46,17 @@ The review's preview is tinted and clipped because it is there to be decided
 about, not read. To open a document as it came in, press its name in the
 document list, or **Read source** above the preview.
 
-A PDF opens as the PDF: its own pages, fitted to the width and zoomable, so a
-table, a stamp or a signature is there to be read rather than flattened into
-paragraphs. **Text** beside it switches to the extracted text — the text the
-detectors actually read, unmarked and with a copy button. Anything else opens
-as that text alone.
+A PDF opens as the PDF: its own pages, fitted to the width, so a table, a stamp
+or a signature is there to be read rather than flattened into paragraphs. Pinch
+to zoom (or use the **+** / **−** buttons, or hold Ctrl and scroll), and the
+percentage between them puts it back to fitting the width — pinch further out
+than that and a whole page fits on a phone. **Text** beside it switches to the
+extracted text — the text the detectors actually read, unmarked and with a copy
+button. Anything else opens as that text alone.
+
+Either view takes the whole screen with the button at the right of its header,
+which on a phone is most of the screen back; press it again, or Escape, to
+return.
 
 The file stays on your device like everything else here: it is kept in this
 browser so the pages can be drawn again later, it is never uploaded anywhere,
